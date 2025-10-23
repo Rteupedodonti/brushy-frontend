@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diş Fırçalama Takibi</title>
+    <meta name="description" content="Çocuklar için eğlenceli diş fırçalama takip uygulaması">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="assets/tooth-icon.png">
+    <meta name="theme-color" content="#4F46E5">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading" class="screen active">
+            <div class="loading-content">
+                <div class="tooth-animation">🦷</div>
+                <h2>Diş Fırçalama Takibi</h2>
+                <p>Yükleniyor...</p>
+            </div>
+        </div>
+
+        <!-- Login/Register Screen -->
+        <div id="auth" class="screen">
+            <div class="auth-container">
+                <div class="logo">
+                    <div class="tooth-logo">🦷</div>
+                    <h1>Diş Fırçalama Takibi</h1>
+                    <p>Sağlıklı dişler için eğlenceli takip!</p>
+                </div>
+                
+                <div class="auth-form">
+                    <div class="form-group">
+                        <label for="parentName">Veli Adı Soyadı</label>
+                        <input type="text" id="parentName" placeholder="Adınız ve soyadınız">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="parentPhone">Telefon Numarası</label>
+                        <input type="tel" id="parentPhone" placeholder="05XX XXX XX XX">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="childName">Çocuğun Adı</label>
+                        <input type="text" id="childName" placeholder="Çocuğunuzun adı">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="childAge">Çocuğun Yaşı</label>
+                        <select id="childAge">
+                            <option value="">Yaş seçin</option>
+                            <option value="0">0 yaş</option>
+                            <option value="1">1 yaş</option>
+                            <option value="2">2 yaş</option>
+                            <option value="3">3 yaş</option>
+                            <option value="4">4 yaş</option>
+                            <option value="5">5 yaş</option>
+                            <option value="6">6 yaş</option>
+                            <option value="7">7 yaş</option>
+                            <option value="8">8 yaş</option>
+                            <option value="9">9 yaş</option>
+                            <option value="10">10 yaş</option>
+                            <option value="11">11 yaş</option>
+                            <option value="12">12 yaş</option>
+                            <option value="13">13 yaş</option>
+                            <option value="14">14 yaş</option>
+                        </select>
+                    </div>
+                    
+                    <button id="registerBtn" class="btn-primary">Kayıt Ol</button>
+                </div>
+                
+                <!-- Backend URL Configuration -->
+                <div class="backend-config">
+                    <details>
+                        <summary>Gelişmiş Ayarlar</summary>
+                        <div class="form-group">
+                            <label for="backendUrl">Backend URL (İsteğe bağlı)</label>
+                            <input type="url" id="backendUrl" placeholder="https://your-app.onrender.com/api">
+                            <small>Backend URL'nizi buraya girin. Boş bırakırsanız sadece yerel depolama kullanılır.</small>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="dashboard" class="screen">
+            <header class="app-header">
+                <div class="user-info">
+                    <div class="avatar" id="userAvatar">👦</div>
+                    <div class="user-details">
+                        <h3 id="userName">Merhaba!</h3>
+                        <p id="userStreak">🔥 0 gün seri</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="sync-status" id="syncStatus">
+                        <span class="sync-icon">📶</span>
+                        <span class="sync-text">Çevrimiçi</span>
+                    </div>
+                    <button id="settingsBtn" class="settings-btn">⚙️</button>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                <div class="today-section">
+                    <h2>Bugün</h2>
+                    <div class="brush-cards">
+                        <div class="brush-card morning" id="morningCard">
+                            <div class="card-icon">🌅</div>
+                            <h3>Sabah</h3>
+                            <p class="status" id="morningStatus">Henüz fırçalanmadı</p>
+                            <button class="brush-btn" id="morningBtn">Fırçala!</button>
+                        </div>
+                        
+                        <div class="brush-card evening" id="eveningCard">
+                            <div class="card-icon">🌙</div>
+                            <h3>Akşam</h3>
+                            <p class="status" id="eveningStatus">Henüz fırçalanmadı</p>
+                            <button class="brush-btn" id="eveningBtn">Fırçala!</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="badges-section">
+                    <h2>Rozetlerim</h2>
+                    <div class="badges-grid" id="badgesGrid">
+                        <!-- Badges will be populated by JS -->
+                    </div>
+                </div>
+
+                <div class="stats-preview">
+                    <h2>Bu Hafta</h2>
+                    <div class="week-stats" id="weekStats">
+                        <!-- Week stats will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <nav class="bottom-nav">
+                <button class="nav-btn active" data-screen="dashboard">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-label">Ana Sayfa</span>
+                </button>
+                <button class="nav-btn" data-screen="timer">
+                    <span class="nav-icon">⏰</span>
+                    <span class="nav-label">Timer</span>
+                </button>
+                <button class="nav-btn" data-screen="stats">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">İstatistik</span>
+                </button>
+                <button class="nav-btn" data-screen="profile">
+                    <span class="nav-icon">👤</span>
+                    <span class="nav-label">Profil</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Timer Screen -->
+        <div id="timer" class="screen">
+            <div class="timer-container">
+                <div class="timer-header">
+                    <button id="timerBackBtn" class="back-btn">←</button>
+                    <h2 id="timerTitle">Sabah Fırçalama</h2>
+                </div>
+                
+                <div class="timer-content">
+                    <div class="timer-circle">
+                        <div class="timer-progress" id="timerProgress"></div>
+                        <div class="timer-display">
+                            <div class="timer-time" id="timerTime">2:00</div>
+                            <div class="timer-label">dakika</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timer-animation">
+                        <div class="brushing-animation" id="brushingAnimation">
+                            🦷 ✨
+                        </div>
+                    </div>
+                    
+                    <div class="timer-tips">
+                        <p id="timerTip">Dişlerini yumuşak hareketlerle fırçala!</p>
+                    </div>
+                    
+                    <div class="timer-controls">
+                        <button id="startTimerBtn" class="btn-primary">Başla</button>
+                        <button id="pauseTimerBtn" class="btn-secondary" style="display: none;">Duraklat</button>
+                        <button id="stopTimerBtn" class="btn-danger" style="display: none;">Durdur</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Screen -->
+        <div id="stats" class="screen">
+            <div class="stats-container">
+                <div class="stats-header">
+                    <h2>İstatistikler</h2>
+                    <div class="stats-period">
+                        <button class="period-btn active" data-period="week">Bu Hafta</button>
+                        <button class="period-btn" data-period="month">Bu Ay</button>
+                    </div>
+                </div>
+                
+                <div class="stats-content">
+                    <div class="stats-summary">
+                        <div class="stat-card">
+                            <div class="stat-icon">🔥</div>
+                            <div class="stat-info">
+                                <h3 id="currentStreak">0</h3>
+                                <p>Günlük Seri</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">🏆</div>
+                            <div class="stat-info">
+                                <h3 id="totalBadges">0</h3>
+                                <p>Kazanılan Rozet</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">⏰</div>
+                            <div class="stat-info">
+                                <h3 id="totalTime">0</h3>
+                                <p>Toplam Dakika</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-view" id="calendarView">
+                        <!-- Calendar will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Screen -->
+        <div id="profile" class="screen">
+            <div class="profile-container">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="profileAvatar">👦</div>
+                    <h2 id="profileName">Çocuk Adı</h2>
+                    <p id="profileAge">5 yaş</p>
+                </div>
+                
+                <div class="avatar-selection">
+                    <h3>Avatar Seç</h3>
+                    <div class="avatars-grid" id="avatarsGrid">
+                        <!-- Avatars will be populated by JS -->
+                    </div>
+                </div>
+                
+                <div class="profile-settings">
+                    <h3>Ayarlar</h3>
+                    <div class="setting-item">
+                        <label>Sabah Hatırlatması</label>
+                        <div class="time-input">
+                            <input type="time" id="morningReminder" value="08:00">
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label>Akşam Hatırlatması</label>
+                        <div class="time-input">
+                            <input type="time" id="eveningReminder" value="20:00">
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label>Bildirimler</label>
+                        <label class="switch">
+                            <input type="checkbox" id="notificationsToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label>Backend URL</label>
+                        <div class="backend-url-input">
+                            <input type="url" id="profileBackendUrl" placeholder="https://your-app.onrender.com/api">
+                            <button id="testConnectionBtn" class="btn-secondary">Test Et</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <button id="saveProfileBtn" class="btn-primary">Kaydet</button>
+                    <button id="exportDataBtn" class="btn-secondary">Verileri Dışa Aktar</button>
+                    <button id="logoutBtn" class="btn-danger">Çıkış Yap</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="data.js"></script>
+    <script src="timer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
