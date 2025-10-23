@@ -1,803 +1,865 @@
-// Enhanced Main application logic with backend integration
-class ToothBrushingApp {
-    constructor() {
-        this.currentScreen = 'loading';
-        this.init();
-    }
+// Global Variables
+let currentParent = null;
+let currentChild = null;
+let children = [];
+let currentScreen = 'auth-screen';
+let isAdminMode = false;
 
-    async init() {
-        // Show loading screen briefly
-        await this.delay(1500);
-        
-        // Check if user is registered
-        const user = dataManager.getUser();
-        if (user) {
-            this.showScreen('dashboard');
-            this.updateDashboard();
-        } else {
-            this.showScreen('auth');
-        }
-        
-        this.bindEvents();
-        this.setupNotifications();
-        this.updateSyncStatus();
-        
-        // Set up periodic sync status updates
-        setInterval(() => this.updateSyncStatus(), 30000); // Every 30 seconds
-    }
+// Admin Configuration
+const ADMIN_PASSWORD = 'admin2024'; // Change this in production
+const ADMIN_SESSION_KEY = 'toothbrush_admin_session';
 
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
+// Initialize App
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+    setupEventListeners();
+    checkAuthStatus();
+    checkAdminSession();
+});
 
-    bindEvents() {
-        // Registration form
-        const registerBtn = document.getElementById('registerBtn');
-        if (registerBtn) {
-            registerBtn.addEventListener('click', () => this.handleRegistration());
-        }
+function initializeApp() {
+    // Load data from storage
+    loadParentData();
+    loadChildrenData();
+    
+    // Setup avatars
+    setupAvatarSelection();
+    
+    // Setup auth tabs
+    setupAuthTabs();
+    
+    // Initialize sync status
+    updateSyncStatus();
+}
 
-        // Navigation
-        const navBtns = document.querySelectorAll('.nav-btn');
-        navBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const screen = e.currentTarget.dataset.screen;
-                this.showScreen(screen);
-            });
-        });
+function setupEventListeners() {
+    // Auth forms
+    document.getElementById('parent-register-form').addEventListener('submit', handleParentRegister);
+    document.getElementById('parent-login-form').addEventListener('submit', handleParentLogin);
+    document.getElementById('child-form').addEventListener('submit', handleChildAdd);
+    
+    // Settings
+    document.getElementById('notifications-enabled').addEventListener('change', saveSettings);
+    document.getElementById('morning-reminder').addEventListener('change', saveSettings);
+    document.getElementById('evening-reminder').addEventListener('change', saveSettings);
+    
+    // Back buttons
+    setupBackButtons();
+}
 
-        // Brushing buttons
-        const morningBtn = document.getElementById('morningBtn');
-        const eveningBtn = document.getElementById('eveningBtn');
-        
-        if (morningBtn) {
-            morningBtn.addEventListener('click', () => this.startBrushing('morning'));
-        }
-        
-        if (eveningBtn) {
-            eveningBtn.addEventListener('click', () => this.startBrushing('evening'));
-        }
-
-        // Timer back button
-        const timerBackBtn = document.getElementById('timerBackBtn');
-        if (timerBackBtn) {
-            timerBackBtn.addEventListener('click', () => {
-                brushingTimer.reset();
-                this.showScreen('dashboard');
-            });
-        }
-
-        // Settings and profile
-        const settingsBtn = document.getElementById('settingsBtn');
-        if (settingsBtn) {
-            settingsBtn.addEventListener('click', () => this.showScreen('profile'));
-        }
-
-        // Profile actions
-        const saveProfileBtn = document.getElementById('saveProfileBtn');
-        const exportDataBtn = document.getElementById('exportDataBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const testConnectionBtn = document.getElementById('testConnectionBtn');
-        
-        if (saveProfileBtn) {
-            saveProfileBtn.addEventListener('click', () => this.saveProfile());
-        }
-        
-        if (exportDataBtn) {
-            exportDataBtn.addEventListener('click', () => this.exportData());
-        }
-        
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => this.logout());
-        }
-        
-        if (testConnectionBtn) {
-            testConnectionBtn.addEventListener('click', () => this.testBackendConnection());
-        }
-
-        // Stats period buttons
-        const periodBtns = document.querySelectorAll('.period-btn');
-        periodBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                periodBtns.forEach(b => b.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                this.updateStats(e.currentTarget.dataset.period);
-            });
-        });
-
-        // Avatar selection
-        this.setupAvatarSelection();
-        
-        // Backend URL input in auth screen
-        const backendUrlInput = document.getElementById('backendUrl');
-        if (backendUrlInput) {
-            backendUrlInput.addEventListener('change', (e) => {
-                if (e.target.value) {
-                    apiService.baseURL = e.target.value;
-                    localStorage.setItem('backendUrl', e.target.value);
-                }
-            });
-            
-            // Load saved backend URL
-            const savedUrl = localStorage.getItem('backendUrl');
-            if (savedUrl) {
-                backendUrlInput.value = savedUrl;
-                apiService.baseURL = savedUrl;
-            }
-        }
-    }
-
-    showScreen(screenName) {
-        // Hide all screens
-        const screens = document.querySelectorAll('.screen');
-        screens.forEach(screen => screen.classList.remove('active'));
-        
-        // Show target screen
-        const targetScreen = document.getElementById(screenName);
-        if (targetScreen) {
-            targetScreen.classList.add('active');
-            this.currentScreen = screenName;
-            
-            // Update navigation
-            this.updateNavigation(screenName);
-            
-            // Update screen content
-            this.updateScreenContent(screenName);
-        }
-    }
-
-    updateNavigation(screenName) {
-        const navBtns = document.querySelectorAll('.nav-btn');
-        navBtns.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.screen === screenName) {
-                btn.classList.add('active');
-            }
+function setupBackButtons() {
+    // Timer back button
+    const timerBackBtn = document.querySelector('#timer-screen .back-btn');
+    if (timerBackBtn) {
+        timerBackBtn.addEventListener('click', () => {
+            showScreen('dashboard-screen');
         });
     }
-
-    updateScreenContent(screenName) {
-        switch (screenName) {
-            case 'dashboard':
-                this.updateDashboard();
-                break;
-            case 'stats':
-                this.updateStats('week');
-                break;
-            case 'profile':
-                this.updateProfile();
-                break;
-        }
-    }
-
-    async handleRegistration() {
-        const parentName = document.getElementById('parentName').value.trim();
-        const parentPhone = document.getElementById('parentPhone').value.trim();
-        const childName = document.getElementById('childName').value.trim();
-        const childAge = document.getElementById('childAge').value;
-        const backendUrl = document.getElementById('backendUrl').value.trim();
-
-        // Validation
-        if (!parentName || !parentPhone || !childName || !childAge) {
-            alert('Lütfen tüm alanları doldurun!');
-            return;
-        }
-
-        if (parentPhone.length < 10) {
-            alert('Lütfen geçerli bir telefon numarası girin!');
-            return;
-        }
-
-        // Set backend URL if provided
-        if (backendUrl) {
-            apiService.baseURL = backendUrl;
-            localStorage.setItem('backendUrl', backendUrl);
-        }
-
-        // Show loading
-        const registerBtn = document.getElementById('registerBtn');
-        const originalText = registerBtn.textContent;
-        registerBtn.textContent = 'Kaydediliyor...';
-        registerBtn.disabled = true;
-
-        try {
-            // Register user (will try backend first, fallback to local)
-            const user = await dataManager.registerUser(parentName, parentPhone, childName, childAge);
-            
-            if (user) {
-                this.showScreen('dashboard');
-                this.updateDashboard();
-                this.showWelcomeMessage();
-            }
-        } catch (error) {
-            console.error('Registration error:', error);
-            alert('Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.');
-        } finally {
-            registerBtn.textContent = originalText;
-            registerBtn.disabled = false;
-        }
-    }
-
-    showWelcomeMessage() {
-        // Create welcome modal or toast
-        const welcomeMsg = document.createElement('div');
-        welcomeMsg.className = 'welcome-toast';
-        welcomeMsg.innerHTML = `
-            <div class="toast-content">
-                <h3>🎉 Hoş Geldin ${dataManager.getUser().childName}!</h3>
-                <p>Sağlıklı dişler için maceraya başlayalım!</p>
-            </div>
-        `;
-        
-        document.body.appendChild(welcomeMsg);
-        
-        setTimeout(() => {
-            welcomeMsg.remove();
-        }, 4000);
-    }
-
-    async updateDashboard() {
-        const user = dataManager.getUser();
-        if (!user) return;
-
-        // Update user info
-        document.getElementById('userName').textContent = `Merhaba ${user.childName}!`;
-        document.getElementById('userStreak').textContent = `🔥 ${user.currentStreak} gün seri`;
-        document.getElementById('userAvatar').textContent = dataManager.getSettings().selectedAvatar;
-
-        // Update today's brushing status
-        await this.updateTodaysBrushing();
-        
-        // Update badges
-        this.updateBadgesDisplay();
-        
-        // Update week stats
-        await this.updateWeekStatsPreview();
-    }
-
-    async updateTodaysBrushing() {
-        const morningDone = dataManager.hasBrushedToday('morning');
-        const eveningDone = dataManager.hasBrushedToday('evening');
-
-        // Morning card
-        const morningCard = document.getElementById('morningCard');
-        const morningStatus = document.getElementById('morningStatus');
-        const morningBtn = document.getElementById('morningBtn');
-
-        if (morningDone) {
-            morningCard.classList.add('completed');
-            morningStatus.textContent = 'Tamamlandı! ✅';
-            morningStatus.classList.add('completed');
-            morningBtn.textContent = 'Tamamlandı';
-            morningBtn.disabled = true;
-        } else {
-            morningCard.classList.remove('completed');
-            morningStatus.textContent = 'Henüz fırçalanmadı';
-            morningStatus.classList.remove('completed');
-            morningBtn.textContent = 'Fırçala!';
-            morningBtn.disabled = false;
-        }
-
-        // Evening card
-        const eveningCard = document.getElementById('eveningCard');
-        const eveningStatus = document.getElementById('eveningStatus');
-        const eveningBtn = document.getElementById('eveningBtn');
-
-        if (eveningDone) {
-            eveningCard.classList.add('completed');
-            eveningStatus.textContent = 'Tamamlandı! ✅';
-            eveningStatus.classList.add('completed');
-            eveningBtn.textContent = 'Tamamlandı';
-            eveningBtn.disabled = true;
-        } else {
-            eveningCard.classList.remove('completed');
-            eveningStatus.textContent = 'Henüz fırçalanmadı';
-            eveningStatus.classList.remove('completed');
-            eveningBtn.textContent = 'Fırçala!';
-            eveningBtn.disabled = false;
-        }
-    }
-
-    updateBadgesDisplay() {
-        const badgesGrid = document.getElementById('badgesGrid');
-        if (!badgesGrid) return;
-
-        const badges = dataManager.getBadges();
-        badgesGrid.innerHTML = '';
-
-        badges.forEach(badge => {
-            const badgeElement = document.createElement('div');
-            badgeElement.className = `badge-item ${badge.status}`;
-            badgeElement.innerHTML = `
-                <div class="badge-icon">${badge.icon}</div>
-                <div class="badge-name">${badge.name}</div>
-            `;
-            
-            // Add tooltip
-            badgeElement.title = badge.description;
-            
-            badgesGrid.appendChild(badgeElement);
+    
+    // Child detail back button
+    const childDetailBackBtn = document.querySelector('#child-detail-screen .back-btn');
+    if (childDetailBackBtn) {
+        childDetailBackBtn.addEventListener('click', () => {
+            showScreen('dashboard-screen');
         });
     }
-
-    async updateWeekStatsPreview() {
-        const weekStatsElement = document.getElementById('weekStats');
-        if (!weekStatsElement) return;
-
-        const weekStats = await dataManager.getWeekStats();
-        weekStatsElement.innerHTML = '';
-
-        weekStats.forEach(day => {
-            const dayElement = document.createElement('div');
-            dayElement.className = `day-stat ${day.status}`;
-            dayElement.innerHTML = `
-                <div class="day-name">${day.dayName}</div>
-                <div class="day-status">
-                    ${day.status === 'completed' ? '✅' : 
-                      day.status === 'partial' ? '⚠️' : '❌'}
-                </div>
-            `;
-            weekStatsElement.appendChild(dayElement);
+    
+    // Stats back button
+    const statsBackBtn = document.querySelector('#stats-screen .back-btn');
+    if (statsBackBtn) {
+        statsBackBtn.addEventListener('click', () => {
+            showScreen('dashboard-screen');
         });
     }
-
-    startBrushing(type) {
-        brushingTimer.setType(type);
-        this.showScreen('timer');
-    }
-
-    async updateStats(period) {
-        const currentStreakElement = document.getElementById('currentStreak');
-        const totalBadgesElement = document.getElementById('totalBadges');
-        const totalTimeElement = document.getElementById('totalTime');
-        const calendarViewElement = document.getElementById('calendarView');
-
-        const user = dataManager.getUser();
-        if (!user) return;
-
-        // Update summary stats
-        if (currentStreakElement) {
-            currentStreakElement.textContent = user.currentStreak;
-        }
-        
-        if (totalBadgesElement) {
-            totalBadgesElement.textContent = dataManager.getEarnedBadgesCount();
-        }
-        
-        if (totalTimeElement) {
-            const totalMinutes = Math.floor(await dataManager.getTotalBrushingTime() / 60);
-            totalTimeElement.textContent = totalMinutes;
-        }
-
-        // Update calendar view
-        if (calendarViewElement) {
-            await this.updateCalendarView(calendarViewElement, period);
-        }
-    }
-
-    async updateCalendarView(container, period) {
-        const days = period === 'week' ? 7 : 30;
-        const records = await dataManager.getBrushingRecords(days);
-        const dailyRecords = dataManager.groupRecordsByDate(records);
-
-        container.innerHTML = '<h4>Fırçalama Geçmişi</h4>';
-        
-        const calendarGrid = document.createElement('div');
-        calendarGrid.className = 'calendar-grid';
-        calendarGrid.style.cssText = `
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 0.5rem;
-            margin-top: 1rem;
-        `;
-
-        const today = new Date();
-        for (let i = days - 1; i >= 0; i--) {
-            const date = new Date(today);
-            date.setDate(date.getDate() - i);
-            const dateString = date.toDateString();
-            
-            const dayRecords = dailyRecords[dateString] || [];
-            const hasMorning = dayRecords.some(r => r.type === 'morning');
-            const hasEvening = dayRecords.some(r => r.type === 'evening');
-            
-            let status = 'missed';
-            if (hasMorning && hasEvening) status = 'completed';
-            else if (hasMorning || hasEvening) status = 'partial';
-
-            const dayElement = document.createElement('div');
-            dayElement.className = `calendar-day ${status}`;
-            dayElement.style.cssText = `
-                aspect-ratio: 1;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 0.8rem;
-                font-weight: 500;
-                ${status === 'completed' ? 'background: #10B981; color: white;' :
-                  status === 'partial' ? 'background: #F59E0B; color: white;' :
-                  'background: #F3F4F6; color: #6B7280;'}
-            `;
-            dayElement.textContent = date.getDate();
-            dayElement.title = `${date.toLocaleDateString('tr-TR')} - ${
-                status === 'completed' ? 'Tam tamamlandı' :
-                status === 'partial' ? 'Kısmen tamamlandı' :
-                'Tamamlanmadı'
-            }`;
-            
-            calendarGrid.appendChild(dayElement);
-        }
-
-        container.appendChild(calendarGrid);
-    }
-
-    updateProfile() {
-        const user = dataManager.getUser();
-        const settings = dataManager.getSettings();
-        
-        if (!user) return;
-
-        // Update profile info
-        document.getElementById('profileName').textContent = user.childName;
-        document.getElementById('profileAge').textContent = `${user.childAge} yaş`;
-        document.getElementById('profileAvatar').textContent = settings.selectedAvatar;
-
-        // Update settings
-        document.getElementById('morningReminder').value = settings.morningReminder;
-        document.getElementById('eveningReminder').value = settings.eveningReminder;
-        document.getElementById('notificationsToggle').checked = settings.notifications;
-        
-        // Update backend URL
-        const savedUrl = localStorage.getItem('backendUrl');
-        if (savedUrl) {
-            document.getElementById('profileBackendUrl').value = savedUrl;
-        }
-
-        // Update avatar selection
-        this.updateAvatarSelection();
-    }
-
-    setupAvatarSelection() {
-        const avatarsGrid = document.getElementById('avatarsGrid');
-        if (!avatarsGrid) return;
-
-        const avatars = dataManager.data.avatars;
-        avatarsGrid.innerHTML = '';
-
-        avatars.forEach(avatar => {
-            const avatarElement = document.createElement('div');
-            avatarElement.className = 'avatar-option';
-            avatarElement.textContent = avatar;
-            
-            avatarElement.addEventListener('click', () => {
-                // Remove previous selection
-                document.querySelectorAll('.avatar-option').forEach(el => {
-                    el.classList.remove('selected');
-                });
-                
-                // Select current avatar
-                avatarElement.classList.add('selected');
-                
-                // Update profile avatar display
-                document.getElementById('profileAvatar').textContent = avatar;
-            });
-            
-            avatarsGrid.appendChild(avatarElement);
+    
+    // Profile back button
+    const profileBackBtn = document.querySelector('#profile-screen .back-btn');
+    if (profileBackBtn) {
+        profileBackBtn.addEventListener('click', () => {
+            showScreen('dashboard-screen');
         });
-    }
-
-    updateAvatarSelection() {
-        const currentAvatar = dataManager.getSettings().selectedAvatar;
-        const avatarOptions = document.querySelectorAll('.avatar-option');
-        
-        avatarOptions.forEach(option => {
-            option.classList.remove('selected');
-            if (option.textContent === currentAvatar) {
-                option.classList.add('selected');
-            }
-        });
-    }
-
-    async saveProfile() {
-        const selectedAvatar = document.querySelector('.avatar-option.selected');
-        const morningReminder = document.getElementById('morningReminder').value;
-        const eveningReminder = document.getElementById('eveningReminder').value;
-        const notifications = document.getElementById('notificationsToggle').checked;
-        const backendUrl = document.getElementById('profileBackendUrl').value.trim();
-
-        const newSettings = {
-            selectedAvatar: selectedAvatar ? selectedAvatar.textContent : dataManager.getSettings().selectedAvatar,
-            morningReminder,
-            eveningReminder,
-            notifications
-        };
-
-        // Update backend URL if changed
-        if (backendUrl && backendUrl !== apiService.baseURL) {
-            apiService.baseURL = backendUrl;
-            localStorage.setItem('backendUrl', backendUrl);
-        }
-
-        try {
-            await dataManager.updateSettings(newSettings);
-            
-            // Update dashboard avatar
-            document.getElementById('userAvatar').textContent = newSettings.selectedAvatar;
-            
-            // Show success message
-            this.showToast('Profil başarıyla kaydedildi! ✅');
-            
-            // Update notifications
-            if (notifications) {
-                this.scheduleNotifications(morningReminder, eveningReminder);
-            }
-        } catch (error) {
-            console.error('Profile save error:', error);
-            this.showToast('Profil kaydedilirken hata oluştu ❌', 'error');
-        }
-    }
-
-    async testBackendConnection() {
-        const testBtn = document.getElementById('testConnectionBtn');
-        const backendUrl = document.getElementById('profileBackendUrl').value.trim();
-        
-        if (!backendUrl) {
-            this.showToast('Lütfen backend URL girin', 'error');
-            return;
-        }
-        
-        testBtn.textContent = 'Test ediliyor...';
-        testBtn.disabled = true;
-        
-        try {
-            // Temporarily set the URL for testing
-            const originalUrl = apiService.baseURL;
-            apiService.baseURL = backendUrl;
-            
-            // Try to make a simple request
-            const response = await fetch(`${backendUrl}/health`);
-            
-            if (response.ok) {
-                this.showToast('Backend bağlantısı başarılı! ✅');
-                localStorage.setItem('backendUrl', backendUrl);
-            } else {
-                throw new Error('Backend yanıt vermiyor');
-            }
-        } catch (error) {
-            console.error('Backend test failed:', error);
-            this.showToast('Backend bağlantısı başarısız ❌', 'error');
-            // Restore original URL
-            const originalUrl = localStorage.getItem('backendUrl');
-            if (originalUrl) {
-                apiService.baseURL = originalUrl;
-            }
-        } finally {
-            testBtn.textContent = 'Test Et';
-            testBtn.disabled = false;
-        }
-    }
-
-    exportData() {
-        try {
-            const data = dataManager.exportData();
-            const blob = new Blob([data], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `dis-fircalama-verileri-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            this.showToast('Veriler başarıyla dışa aktarıldı! 📥');
-        } catch (error) {
-            console.error('Export error:', error);
-            this.showToast('Veri dışa aktarımında hata oluştu ❌', 'error');
-        }
-    }
-
-    logout() {
-        if (confirm('Çıkış yapmak istediğinizden emin misiniz? Tüm verileriniz silinecek.')) {
-            dataManager.clearAllData();
-            location.reload();
-        }
-    }
-
-    updateSyncStatus() {
-        const syncStatus = document.getElementById('syncStatus');
-        if (!syncStatus) return;
-        
-        const syncIcon = syncStatus.querySelector('.sync-icon');
-        const syncText = syncStatus.querySelector('.sync-text');
-        
-        if (navigator.onLine) {
-            syncIcon.textContent = '📶';
-            syncText.textContent = 'Çevrimiçi';
-            syncStatus.className = 'sync-status online';
-        } else {
-            syncIcon.textContent = '📵';
-            syncText.textContent = 'Çevrimdışı';
-            syncStatus.className = 'sync-status offline';
-        }
-    }
-
-    showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'error' ? '#EF4444' : '#10B981'};
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            animation: slideInRight 0.3s ease-out;
-            max-width: 300px;
-        `;
-        toast.textContent = message;
-        
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.animation = 'slideOutRight 0.3s ease-out';
-            setTimeout(() => toast.remove(), 300);
-        }, 4000);
-    }
-
-    setupNotifications() {
-        // Request notification permission
-        if ('Notification' in window && 'serviceWorker' in navigator) {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    this.registerServiceWorker();
-                }
-            });
-        }
-    }
-
-    async registerServiceWorker() {
-        try {
-            const registration = await navigator.serviceWorker.register('sw.js');
-            console.log('Service Worker registered:', registration);
-        } catch (error) {
-            console.log('Service Worker registration failed:', error);
-        }
-    }
-
-    scheduleNotifications(morningTime, eveningTime) {
-        // This would typically be handled by the service worker
-        // For now, we'll just store the preferences
-        console.log('Notifications scheduled for:', morningTime, eveningTime);
     }
 }
 
-// Add enhanced styles
-const enhancedStyle = document.createElement('style');
-enhancedStyle.textContent = `
-    .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
+function setupAuthTabs() {
+    const tabs = document.querySelectorAll('.auth-tab');
+    const forms = document.querySelectorAll('.auth-form');
     
-    .sync-status {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.2);
-        font-size: 0.8rem;
-    }
-    
-    .sync-status.offline {
-        background: rgba(239, 68, 68, 0.2);
-    }
-    
-    .backend-config {
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid #E5E7EB;
-    }
-    
-    .backend-config details {
-        cursor: pointer;
-    }
-    
-    .backend-config summary {
-        color: #6B7280;
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-    }
-    
-    .backend-config small {
-        display: block;
-        color: #6B7280;
-        font-size: 0.8rem;
-        margin-top: 0.5rem;
-    }
-    
-    .backend-url-input {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-    }
-    
-    .backend-url-input input {
-        flex: 1;
-    }
-    
-    .toast.error {
-        background: #EF4444 !important;
-    }
-    
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-    
-    .welcome-toast {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        border-radius: 20px;
-        padding: 2rem;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        z-index: 1000;
-        animation: slideUp 0.5s ease-out;
-        text-align: center;
-        max-width: 300px;
-    }
-    
-    .toast-content h3 {
-        color: #4F46E5;
-        margin-bottom: 1rem;
-    }
-    
-    .toast-content p {
-        color: #6B7280;
-    }
-    
-    .brush-card.completed {
-        background: linear-gradient(135deg, #10B981, #059669);
-        color: white;
-    }
-    
-    .brush-card.completed .card-icon {
-        filter: brightness(1.2);
-    }
-`;
-document.head.appendChild(enhancedStyle);
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs and forms
+            tabs.forEach(t => t.classList.remove('active'));
+            forms.forEach(f => f.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            tab.classList.add('active');
+            
+            // Show corresponding form
+            const tabType = tab.dataset.tab;
+            document.getElementById(`${tabType}-form`).classList.add('active');
+        });
+    });
+}
 
-// Initialize the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new ToothBrushingApp();
-});
+// Admin Access Functions
+function showAdminLogin() {
+    document.getElementById('admin-login-modal').style.display = 'flex';
+    document.getElementById('admin-password').focus();
+    
+    // Add enter key listener
+    document.getElementById('admin-password').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            verifyAdminAccess();
+        }
+    });
+}
 
-// Make app globally available
-window.ToothBrushingApp = ToothBrushingApp;
+function hideAdminLogin() {
+    document.getElementById('admin-login-modal').style.display = 'none';
+    document.getElementById('admin-password').value = '';
+}
+
+function verifyAdminAccess() {
+    const password = document.getElementById('admin-password').value;
+    
+    if (password === ADMIN_PASSWORD) {
+        isAdminMode = true;
+        localStorage.setItem(ADMIN_SESSION_KEY, Date.now().toString());
+        
+        // Show advanced settings
+        document.getElementById('advanced-settings').style.display = 'block';
+        hideAdminLogin();
+        
+        // Show success message
+        showNotification('Admin erişimi başarılı! 👨‍💼', 'success');
+        
+        // Load saved admin settings
+        loadAdminSettings();
+    } else {
+        showNotification('Hatalı admin şifresi! ❌', 'error');
+        document.getElementById('admin-password').value = '';
+        document.getElementById('admin-password').focus();
+    }
+}
+
+function hideAdvancedSettings() {
+    document.getElementById('advanced-settings').style.display = 'none';
+    isAdminMode = false;
+    localStorage.removeItem(ADMIN_SESSION_KEY);
+    showNotification('Admin modundan çıkıldı', 'info');
+}
+
+function checkAdminSession() {
+    const adminSession = localStorage.getItem(ADMIN_SESSION_KEY);
+    if (adminSession) {
+        const sessionTime = parseInt(adminSession);
+        const currentTime = Date.now();
+        const sessionDuration = 24 * 60 * 60 * 1000; // 24 hours
+        
+        if (currentTime - sessionTime < sessionDuration) {
+            isAdminMode = true;
+            // Show admin settings in profile if logged in
+            if (currentParent) {
+                showAdminProfileSettings();
+            }
+        } else {
+            localStorage.removeItem(ADMIN_SESSION_KEY);
+        }
+    }
+}
+
+function showAdminProfileSettings() {
+    const adminSettings = document.getElementById('admin-profile-settings');
+    if (adminSettings && isAdminMode) {
+        adminSettings.style.display = 'block';
+        loadAdminProfileSettings();
+    }
+}
+
+function loadAdminSettings() {
+    // Load backend URL
+    const savedBackendUrl = localStorage.getItem('backend_url');
+    if (savedBackendUrl) {
+        document.getElementById('backend-url').value = savedBackendUrl;
+    }
+    
+    // Load other admin settings
+    const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
+    document.getElementById('debug-mode').checked = adminSettings.debugMode || false;
+    document.getElementById('analytics-enabled').checked = adminSettings.analytics || false;
+    
+    if (adminSettings.adminEmail) {
+        document.getElementById('admin-email').value = adminSettings.adminEmail;
+    }
+}
+
+function loadAdminProfileSettings() {
+    const savedBackendUrl = localStorage.getItem('backend_url');
+    if (savedBackendUrl) {
+        document.getElementById('profile-backend-url').value = savedBackendUrl;
+    }
+    
+    const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
+    document.getElementById('profile-debug-mode').checked = adminSettings.debugMode || false;
+    document.getElementById('profile-analytics').checked = adminSettings.analytics || false;
+}
+
+function saveAdminSettings() {
+    if (!isAdminMode) return;
+    
+    const adminSettings = {
+        debugMode: document.getElementById('debug-mode')?.checked || document.getElementById('profile-debug-mode')?.checked || false,
+        analytics: document.getElementById('analytics-enabled')?.checked || document.getElementById('profile-analytics')?.checked || false,
+        adminEmail: document.getElementById('admin-email')?.value || ''
+    };
+    
+    localStorage.setItem('admin_settings', JSON.stringify(adminSettings));
+    
+    // Save backend URL
+    const backendUrl = document.getElementById('backend-url')?.value || document.getElementById('profile-backend-url')?.value;
+    if (backendUrl) {
+        localStorage.setItem('backend_url', backendUrl);
+        setBackendUrl(backendUrl);
+    }
+    
+    showNotification('Admin ayarları kaydedildi', 'success');
+}
+
+function checkAuthStatus() {
+    const parent = getParentData();
+    if (parent && parent.id) {
+        currentParent = parent;
+        showScreen('dashboard-screen');
+        loadDashboard();
+        
+        // Show admin settings in profile if admin mode is active
+        if (isAdminMode) {
+            showAdminProfileSettings();
+        }
+    } else {
+        showScreen('auth-screen');
+    }
+}
+
+async function handleParentRegister(e) {
+    e.preventDefault();
+    
+    const formData = {
+        name: document.getElementById('parent-name').value,
+        phone: document.getElementById('parent-phone').value,
+        email: document.getElementById('parent-email').value || null
+    };
+    
+    // Save admin settings if in admin mode
+    if (isAdminMode) {
+        saveAdminSettings();
+    }
+    
+    try {
+        // Try to register with backend first
+        const parent = await registerParent(formData);
+        
+        if (parent) {
+            currentParent = parent;
+            saveParentData(parent);
+            showScreen('dashboard-screen');
+            loadDashboard();
+            showNotification('Kayıt başarılı!', 'success');
+        }
+    } catch (error) {
+        // Fallback to local storage
+        const localParent = {
+            id: generateId(),
+            ...formData,
+            created_at: new Date().toISOString()
+        };
+        
+        currentParent = localParent;
+        saveParentData(localParent);
+        showScreen('dashboard-screen');
+        loadDashboard();
+        showNotification('Çevrimdışı kayıt yapıldı', 'info');
+    }
+    
+    // Show admin settings in profile if admin mode is active
+    if (isAdminMode) {
+        showAdminProfileSettings();
+    }
+}
+
+async function handleParentLogin(e) {
+    e.preventDefault();
+    
+    const phone = document.getElementById('login-phone').value;
+    const name = document.getElementById('login-name').value;
+    
+    try {
+        // Try to login with backend
+        const parent = await loginParent({ phone, name });
+        
+        if (parent) {
+            currentParent = parent;
+            saveParentData(parent);
+            
+            // Load children from backend
+            const backendChildren = await getChildrenByParent(parent.id);
+            if (backendChildren && backendChildren.length > 0) {
+                children = backendChildren;
+                saveChildrenData(children);
+            }
+            
+            showScreen('dashboard-screen');
+            loadDashboard();
+            showNotification('Giriş başarılı!', 'success');
+        }
+    } catch (error) {
+        // Fallback to local storage
+        const localParent = getParentData();
+        if (localParent && localParent.phone === phone && localParent.name === name) {
+            currentParent = localParent;
+            showScreen('dashboard-screen');
+            loadDashboard();
+            showNotification('Çevrimdışı giriş yapıldı', 'info');
+        } else {
+            showNotification('Giriş bilgileri hatalı', 'error');
+        }
+    }
+    
+    // Show admin settings in profile if admin mode is active
+    if (isAdminMode) {
+        showAdminProfileSettings();
+    }
+}
+
+function loadDashboard() {
+    // Update parent name display
+    document.getElementById('parent-name-display').textContent = currentParent.name;
+    
+    // Load children
+    children = getChildrenData();
+    renderChildren();
+    
+    // Update profile info
+    updateProfileInfo();
+    
+    // Load stats
+    loadStats();
+    
+    // Setup reminders
+    setupReminders();
+}
+
+function renderChildren() {
+    const container = document.getElementById('children-list');
+    
+    if (children.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">👶</div>
+                <h3>Henüz çocuk eklenmemiş</h3>
+                <p>İlk çocuğunuzu eklemek için "Çocuk Ekle" butonuna tıklayın</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = children.map(child => `
+        <div class="child-card" onclick="showChildDetail('${child.id}')">
+            <div class="child-avatar">${getAvatarEmoji(child.avatar)}</div>
+            <div class="child-info">
+                <h3>${child.name}</h3>
+                <p>${child.age} yaşında</p>
+                <div class="child-streak">
+                    <span class="streak-badge">${child.current_streak || 0} gün</span>
+                </div>
+            </div>
+            <div class="child-actions">
+                <button class="quick-timer" onclick="event.stopPropagation(); quickTimer('${child.id}', 'morning')">🌅</button>
+                <button class="quick-timer" onclick="event.stopPropagation(); quickTimer('${child.id}', 'evening')">🌙</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function showAddChildForm() {
+    document.getElementById('add-child-form').style.display = 'flex';
+    setupAvatarSelection();
+}
+
+function hideAddChildForm() {
+    document.getElementById('add-child-form').style.display = 'none';
+    document.getElementById('child-form').reset();
+}
+
+async function handleChildAdd(e) {
+    e.preventDefault();
+    
+    const selectedAvatar = document.querySelector('.avatar-option.selected');
+    if (!selectedAvatar) {
+        showNotification('Lütfen bir avatar seçin', 'error');
+        return;
+    }
+    
+    const childData = {
+        parent_id: currentParent.id,
+        name: document.getElementById('child-name').value,
+        age: parseInt(document.getElementById('child-age').value),
+        avatar: selectedAvatar.dataset.avatar,
+        current_streak: 0,
+        longest_streak: 0
+    };
+    
+    try {
+        // Try to add child to backend
+        const child = await addChild(childData);
+        
+        if (child) {
+            children.push(child);
+            saveChildrenData(children);
+            renderChildren();
+            hideAddChildForm();
+            showNotification('Çocuk başarıyla eklendi!', 'success');
+        }
+    } catch (error) {
+        // Fallback to local storage
+        const localChild = {
+            id: generateId(),
+            ...childData,
+            created_at: new Date().toISOString()
+        };
+        
+        children.push(localChild);
+        saveChildrenData(children);
+        renderChildren();
+        hideAddChildForm();
+        showNotification('Çocuk çevrimdışı eklendi', 'info');
+    }
+}
+
+function setupAvatarSelection() {
+    const avatars = [
+        '👶', '🧒', '👦', '👧', '🧑', '👨', '👩', '🧔',
+        '👱', '👴', '👵', '🙍', '🙎', '🙅', '🙆', '💁',
+        '🙋', '🧏', '🙇', '🤦', '🤷', '👨‍⚕️', '👩‍⚕️', '👨‍🎓'
+    ];
+    
+    const container = document.getElementById('avatar-selection');
+    container.innerHTML = avatars.map((avatar, index) => `
+        <div class="avatar-option" data-avatar="${index}" onclick="selectAvatar(this)">
+            ${avatar}
+        </div>
+    `).join('');
+}
+
+function selectAvatar(element) {
+    document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('selected'));
+    element.classList.add('selected');
+}
+
+function getAvatarEmoji(avatarIndex) {
+    const avatars = [
+        '👶', '🧒', '👦', '👧', '🧑', '👨', '👩', '🧔',
+        '👱', '👴', '👵', '🙍', '🙎', '🙅', '🙆', '💁',
+        '🙋', '🧏', '🙇', '🤦', '🤷', '👨‍⚕️', '👩‍⚕️', '👨‍🎓'
+    ];
+    return avatars[avatarIndex] || '👶';
+}
+
+function showChildDetail(childId) {
+    const child = children.find(c => c.id === childId);
+    if (!child) return;
+    
+    currentChild = child;
+    
+    // Update child detail display
+    document.getElementById('child-detail-name').textContent = child.name;
+    document.getElementById('child-detail-name-display').textContent = child.name;
+    document.getElementById('child-detail-age').textContent = `${child.age} yaşında`;
+    document.getElementById('child-detail-avatar').textContent = getAvatarEmoji(child.avatar);
+    document.getElementById('current-streak').textContent = child.current_streak || 0;
+    document.getElementById('longest-streak').textContent = child.longest_streak || 0;
+    
+    // Load child's rewards and recent activity
+    loadChildRewards(child.id);
+    loadRecentActivity(child.id);
+    
+    showScreen('child-detail-screen');
+}
+
+function quickTimer(childId, sessionType) {
+    const child = children.find(c => c.id === childId);
+    if (!child) return;
+    
+    currentChild = child;
+    startTimer(sessionType);
+}
+
+function startTimer(sessionType) {
+    if (!currentChild) {
+        showNotification('Lütfen önce bir çocuk seçin', 'error');
+        return;
+    }
+    
+    // Set session type
+    document.getElementById('session-type-display').textContent = 
+        sessionType === 'morning' ? 'Sabah' : 'Akşam';
+    
+    showScreen('timer-screen');
+    initializeTimer(sessionType);
+}
+
+function showScreen(screenId) {
+    // Hide all screens
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+    
+    // Show target screen
+    document.getElementById(screenId).classList.add('active');
+    currentScreen = screenId;
+    
+    // Update navigation
+    updateNavigation(screenId);
+}
+
+function updateNavigation(screenId) {
+    const navBtns = document.querySelectorAll('.nav-btn');
+    navBtns.forEach(btn => btn.classList.remove('active'));
+    
+    // Map screen IDs to navigation buttons
+    const screenNavMap = {
+        'dashboard-screen': 0,
+        'timer-screen': 1,
+        'stats-screen': 2,
+        'profile-screen': 3
+    };
+    
+    const navIndex = screenNavMap[screenId];
+    if (navIndex !== undefined && navBtns[navIndex]) {
+        navBtns[navIndex].classList.add('active');
+    }
+}
+
+function loadChildRewards(childId) {
+    const rewards = getChildRewards(childId);
+    const container = document.getElementById('child-rewards');
+    
+    const rewardTypes = [
+        { type: 'first_brush', name: 'İlk Fırçalama', icon: '🦷' },
+        { type: 'week_streak', name: '7 Gün Seri', icon: '📅' },
+        { type: 'month_streak', name: '30 Gün Seri', icon: '🗓️' },
+        { type: 'perfect_week', name: 'Mükemmel Hafta', icon: '⭐' },
+        { type: 'early_bird', name: 'Erken Kuş', icon: '🌅' },
+        { type: 'night_owl', name: 'Gece Kuşu', icon: '🌙' },
+        { type: 'speed_demon', name: 'Hız Canavarı', icon: '⚡' },
+        { type: 'patience_master', name: 'Sabır Ustası', icon: '🧘' },
+        { type: 'consistency_king', name: 'Tutarlılık Kralı', icon: '👑' },
+        { type: 'champion', name: 'Şampiyon', icon: '🏆' }
+    ];
+    
+    container.innerHTML = rewardTypes.map(reward => {
+        const earned = rewards.find(r => r.type === reward.type);
+        const status = earned ? (earned.status === 'lost' ? 'lost' : 'earned') : 'not-earned';
+        
+        return `
+            <div class="reward-badge ${status}">
+                <div class="reward-icon">${reward.icon}</div>
+                <div class="reward-name">${reward.name}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function loadRecentActivity(childId) {
+    const records = getBrushingRecords(childId);
+    const container = document.getElementById('recent-brushing');
+    
+    if (records.length === 0) {
+        container.innerHTML = '<p class="no-activity">Henüz fırçalama kaydı yok</p>';
+        return;
+    }
+    
+    const recent = records.slice(0, 5);
+    container.innerHTML = recent.map(record => `
+        <div class="activity-item">
+            <div class="activity-icon">${record.session_type === 'morning' ? '🌅' : '🌙'}</div>
+            <div class="activity-info">
+                <div class="activity-title">${record.session_type === 'morning' ? 'Sabah' : 'Akşam'} Fırçalama</div>
+                <div class="activity-details">
+                    ${formatDate(record.brush_time)} - ${Math.floor(record.duration / 60)}:${(record.duration % 60).toString().padStart(2, '0')}
+                </div>
+            </div>
+            <div class="activity-score">${'⭐'.repeat(record.quality_score || 3)}</div>
+        </div>
+    `).join('');
+}
+
+function loadStats() {
+    const allRecords = getAllBrushingRecords();
+    
+    // Update stats overview
+    document.getElementById('total-brushings').textContent = allRecords.length;
+    
+    const avgDuration = allRecords.length > 0 
+        ? Math.round(allRecords.reduce((sum, r) => sum + r.duration, 0) / allRecords.length)
+        : 0;
+    document.getElementById('avg-duration').textContent = `${Math.floor(avgDuration / 60)}:${(avgDuration % 60).toString().padStart(2, '0')}`;
+    
+    const bestStreak = Math.max(...children.map(c => c.longest_streak || 0), 0);
+    document.getElementById('best-streak').textContent = bestStreak;
+    
+    // Update child filter
+    const filter = document.getElementById('stats-child-filter');
+    filter.innerHTML = '<option value="all">Tüm Çocuklar</option>' +
+        children.map(child => `<option value="${child.id}">${child.name}</option>`).join('');
+    
+    // Render charts
+    renderWeeklyChart();
+    renderDailyDistribution();
+}
+
+function renderWeeklyChart() {
+    const container = document.getElementById('weekly-chart');
+    const records = getAllBrushingRecords();
+    
+    // Get last 7 days
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        days.push(date);
+    }
+    
+    const chartData = days.map(day => {
+        const dayRecords = records.filter(r => {
+            const recordDate = new Date(r.brush_time);
+            return recordDate.toDateString() === day.toDateString();
+        });
+        
+        return {
+            day: day.toLocaleDateString('tr-TR', { weekday: 'short' }),
+            count: dayRecords.length
+        };
+    });
+    
+    const maxCount = Math.max(...chartData.map(d => d.count), 1);
+    
+    container.innerHTML = chartData.map(data => `
+        <div class="chart-bar">
+            <div class="bar" style="height: ${(data.count / maxCount) * 100}%"></div>
+            <div class="bar-label">${data.day}</div>
+            <div class="bar-value">${data.count}</div>
+        </div>
+    `).join('');
+}
+
+function renderDailyDistribution() {
+    const container = document.getElementById('daily-distribution');
+    const records = getAllBrushingRecords();
+    
+    const morningCount = records.filter(r => r.session_type === 'morning').length;
+    const eveningCount = records.filter(r => r.session_type === 'evening').length;
+    const total = morningCount + eveningCount;
+    
+    if (total === 0) {
+        container.innerHTML = '<p class="no-data">Henüz veri yok</p>';
+        return;
+    }
+    
+    const morningPercent = (morningCount / total) * 100;
+    const eveningPercent = (eveningCount / total) * 100;
+    
+    container.innerHTML = `
+        <div class="distribution-item">
+            <div class="distribution-bar">
+                <div class="bar-segment morning" style="width: ${morningPercent}%"></div>
+                <div class="bar-segment evening" style="width: ${eveningPercent}%"></div>
+            </div>
+            <div class="distribution-legend">
+                <div class="legend-item">
+                    <span class="legend-color morning"></span>
+                    <span>Sabah (${morningCount})</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color evening"></span>
+                    <span>Akşam (${eveningCount})</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function updateProfileInfo() {
+    document.getElementById('profile-parent-name').textContent = currentParent.name;
+    document.getElementById('profile-parent-phone').textContent = currentParent.phone;
+    document.getElementById('profile-parent-email').textContent = currentParent.email || 'Belirtilmemiş';
+    
+    // Load settings
+    const settings = getSettings();
+    document.getElementById('notifications-enabled').checked = settings.notifications;
+    document.getElementById('morning-reminder').value = settings.morningReminder;
+    document.getElementById('evening-reminder').value = settings.eveningReminder;
+    
+    // Show admin settings if in admin mode
+    if (isAdminMode) {
+        showAdminProfileSettings();
+    }
+}
+
+function saveSettings() {
+    const settings = {
+        notifications: document.getElementById('notifications-enabled').checked,
+        morningReminder: document.getElementById('morning-reminder').value,
+        eveningReminder: document.getElementById('evening-reminder').value
+    };
+    
+    localStorage.setItem('toothbrush_settings', JSON.stringify(settings));
+    setupReminders();
+    
+    // Save admin settings if in admin mode
+    if (isAdminMode) {
+        saveAdminSettings();
+    }
+}
+
+function setupReminders() {
+    if ('Notification' in window) {
+        Notification.requestPermission();
+    }
+    
+    const settings = getSettings();
+    if (settings.notifications) {
+        // Setup morning reminder
+        scheduleReminder(settings.morningReminder, 'Sabah diş fırçalama zamanı! 🌅');
+        // Setup evening reminder
+        scheduleReminder(settings.eveningReminder, 'Akşam diş fırçalama zamanı! 🌙');
+    }
+}
+
+function scheduleReminder(time, message) {
+    // This is a simplified reminder system
+    // In a real app, you'd use service workers for background notifications
+    const [hours, minutes] = time.split(':').map(Number);
+    const now = new Date();
+    const reminderTime = new Date();
+    reminderTime.setHours(hours, minutes, 0, 0);
+    
+    if (reminderTime <= now) {
+        reminderTime.setDate(reminderTime.getDate() + 1);
+    }
+    
+    const timeUntilReminder = reminderTime.getTime() - now.getTime();
+    
+    setTimeout(() => {
+        if (Notification.permission === 'granted') {
+            new Notification('Diş Fırçalama Hatırlatması', {
+                body: message,
+                icon: 'icon-192x192.png'
+            });
+        }
+        
+        // Schedule for next day
+        scheduleReminder(time, message);
+    }, timeUntilReminder);
+}
+
+function exportData() {
+    const data = {
+        parent: currentParent,
+        children: children,
+        brushingRecords: getAllBrushingRecords(),
+        rewards: getAllRewards(),
+        settings: getSettings(),
+        exportDate: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dis-fircalama-verileri-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('Veriler başarıyla dışa aktarıldı', 'success');
+}
+
+function logout() {
+    if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
+        localStorage.removeItem('toothbrush_parent');
+        localStorage.removeItem('toothbrush_children');
+        localStorage.removeItem('toothbrush_brushing_records');
+        localStorage.removeItem('toothbrush_rewards');
+        localStorage.removeItem('toothbrush_settings');
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        
+        currentParent = null;
+        currentChild = null;
+        children = [];
+        isAdminMode = false;
+        
+        showScreen('auth-screen');
+        showNotification('Başarıyla çıkış yapıldı', 'info');
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Show notification
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    // Hide and remove notification
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
+}
+
+function updateSyncStatus() {
+    const indicator = document.getElementById('sync-indicator');
+    if (!indicator) return;
+    
+    const backendUrl = getBackendUrl();
+    if (backendUrl) {
+        // Test backend connection
+        testBackendConnection().then(isOnline => {
+            if (isOnline) {
+                indicator.textContent = 'Çevrimiçi';
+                indicator.className = 'sync-online';
+            } else {
+                indicator.textContent = 'Bağlantı Hatası';
+                indicator.className = 'sync-error';
+            }
+        });
+    } else {
+        indicator.textContent = 'Çevrimdışı';
+        indicator.className = 'sync-offline';
+    }
+}
+
+// Utility Functions
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('tr-TR');
+}
+
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Sync status update interval
+setInterval(updateSyncStatus, 30000); // Update every 30 seconds
