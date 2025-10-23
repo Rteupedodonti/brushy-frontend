@@ -13,8 +13,6 @@
     }
   ],
   "headers": [
-    // 1. Statik Dosyalar için Cache-Control (Hata veren kuralın düzeltilmiş hali)
-    // Kalıp: / (herhangi bir şey) . (uzantılar) $ (son)
     {
       "source": "/(.*)\\.(js|css|png|jpg|jpeg|gif|ico|svg)",
       "headers": [
@@ -24,8 +22,6 @@
         }
       ]
     },
-    
-    // 2. Service Worker (sw.js) için Özel Başlıklar ve No-Cache
     {
       "source": "/sw.js",
       "headers": [
@@ -39,8 +35,6 @@
         }
       ]
     },
-    
-    // 3. Manifest.json için İçerik Türü ve Önbellekleme
     {
       "source": "/manifest.json",
       "headers": [
@@ -54,9 +48,6 @@
         }
       ]
     },
-    
-    // 4. index.html için No-Cache (Tarayıcının her zaman en son HTML'i alması için)
-    // Bu, "rewrites" ile yönlendirilen sayfanın Cache-Control'ünü belirler.
     {
       "source": "/index.html",
       "headers": [
@@ -66,9 +57,6 @@
         }
       ]
     },
-
-    // 5. Geri Kalan Her Şey İçin Genel Güvenlik Başlıkları
-    // Bu, HTML yanıtlarını (rewrites sonrası) ve diğer tüm yanıtları kapsar.
     {
       "source": "/(.*)",
       "headers": [
