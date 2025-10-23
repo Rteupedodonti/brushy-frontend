@@ -13,6 +13,62 @@
     }
   ],
   "headers": [
+    // 1. Statik Dosyalar için Cache-Control (Hata veren kuralın düzeltilmiş hali)
+    // Kalıp: / (herhangi bir şey) . (uzantılar) $ (son)
+    {
+      "source": "/(.*)\\.(js|css|png|jpg|jpeg|gif|ico|svg)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    
+    // 2. Service Worker (sw.js) için Özel Başlıklar ve No-Cache
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    },
+    
+    // 3. Manifest.json için İçerik Türü ve Önbellekleme
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    
+    // 4. index.html için No-Cache (Tarayıcının her zaman en son HTML'i alması için)
+    // Bu, "rewrites" ile yönlendirilen sayfanın Cache-Control'ünü belirler.
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+
+    // 5. Geri Kalan Her Şey İçin Genel Güvenlik Başlıkları
+    // Bu, HTML yanıtlarını (rewrites sonrası) ve diğer tüm yanıtları kapsar.
     {
       "source": "/(.*)",
       "headers": [
@@ -35,50 +91,6 @@
         {
           "key": "Permissions-Policy",
           "value": "camera=(), microphone=(), geolocation=()"
-        }
-      ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        },
-        {
-          "key": "Service-Worker-Allowed",
-          "value": "/"
-        }
-      ]
-    },
-    {
-      "source": "/manifest.json",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/manifest+json"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg))",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
         }
       ]
     }
