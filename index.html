@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diş Fırçalama Takip</title>
-    <script type="text/javascript" nonce="b635fea0a2bf4e60b846def1363" src="//local.adguard.org?ts=1761255552972&amp;type=content-script&amp;dmn=mgx.dev&amp;url=https%3A%2F%2Fmgx.dev%2Fapi%2Fv1%2Ffiles%2Fdownload%3Fpath%3D%252Fchats%252Fcdb8c0f7114c47c9859d204a340a434d%252Fworkspace%252Ffrontend-vercel%252Findex.html&amp;app=opera.exe&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script><script type="text/javascript" nonce="b635fea0a2bf4e60b846def1363" src="//local.adguard.org?ts=1761255552972&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script><link rel="stylesheet" href="style.css">
+    <script type="text/javascript" nonce="b635fea0a2bf4e60b846def1363" src="//local.adguard.org?ts=1761285055505&amp;type=content-script&amp;dmn=mgx.dev&amp;url=https%3A%2F%2Fmgx.dev%2Fapi%2Fv1%2Ffiles%2Fdownload%3Fpath%3D%252Fchats%252Fcdb8c0f7114c47c9859d204a340a434d%252F.storage%252F81%252F28e07ea2%252Findex.html&amp;app=opera.exe&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script><script type="text/javascript" nonce="b635fea0a2bf4e60b846def1363" src="//local.adguard.org?ts=1761285055505&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script><link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4CAF50">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -44,60 +44,6 @@
                         <input type="email" id="parent-email">
                     </div>
                     
-                    <!-- Admin Access for Advanced Settings -->
-                    <div class="admin-access">
-                        <div class="admin-trigger" onclick="showAdminLogin()">
-                            <span class="admin-icon">⚙️</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Admin Login Modal -->
-                    <div id="admin-login-modal" class="admin-modal" style="display: none;">
-                        <div class="admin-modal-content">
-                            <h3>Admin Erişimi</h3>
-                            <p>Gelişmiş ayarlara erişmek için admin şifresini girin:</p>
-                            <div class="form-group">
-                                <input type="password" id="admin-password" placeholder="Admin şifresi">
-                            </div>
-                            <div class="admin-actions">
-                                <button type="button" onclick="hideAdminLogin()">İptal</button>
-                                <button type="button" onclick="verifyAdminAccess()">Doğrula</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Advanced Settings (Hidden by default) -->
-                    <div id="advanced-settings" class="advanced-settings" style="display: none;">
-                        <div class="advanced-header">
-                            <span class="admin-badge">👨‍💼 Admin</span>
-                            <button type="button" class="close-advanced" onclick="hideAdvancedSettings()">✕</button>
-                        </div>
-                        <div class="advanced-content">
-                            <div class="form-group">
-                                <label for="backend-url">Backend URL</label>
-                                <input type="url" id="backend-url" placeholder="https://your-backend.onrender.com/api">
-                                <small>Backend bağlantısı için API URL'nizi girin</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="admin-email">Admin E-posta</label>
-                                <input type="email" id="admin-email" placeholder="admin@example.com">
-                                <small>Sistem yöneticisi e-posta adresi</small>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="debug-mode"> Debug Modu
-                                </label>
-                                <small>Geliştirici konsol loglarını etkinleştir</small>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="analytics-enabled"> Analytics
-                                </label>
-                                <small>Kullanım istatistiklerini topla</small>
-                            </div>
-                        </div>
-                    </div>
-                    
                     <button type="submit" class="btn-primary">Kayıt Ol</button>
                 </form>
             </div>
@@ -116,6 +62,241 @@
                     </div>
                     <button type="submit" class="btn-primary">Giriş Yap</button>
                 </form>
+            </div>
+
+            <!-- Admin Access Button -->
+            <div class="admin-access">
+                <button class="admin-btn" onclick="showAdminLogin()">⚙️ Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="admin-login-modal" class="modal" style="display: none;">
+        <div class="modal-content admin-modal">
+            <h3>Admin Girişi</h3>
+            <div class="form-group">
+                <label for="admin-password">Admin Şifresi</label>
+                <input type="password" id="admin-password" placeholder="Şifrenizi girin">
+            </div>
+            <div class="form-actions">
+                <button type="button" onclick="hideAdminLogin()">İptal</button>
+                <button type="button" onclick="verifyAdminAccess()" class="btn-primary">Giriş</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Screen -->
+    <div id="admin-panel-screen" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('auth-screen')">←</button>
+            <h1>Admin Paneli</h1>
+            <button class="logout-btn" onclick="logoutAdmin()">Çıkış</button>
+        </div>
+
+        <div class="admin-content">
+            <!-- System Status -->
+            <div class="admin-section">
+                <h3>🔧 Sistem Durumu</h3>
+                <div class="status-grid">
+                    <div class="status-card">
+                        <div class="status-icon">👥</div>
+                        <div class="status-info">
+                            <div class="status-number" id="total-parents">0</div>
+                            <div class="status-label">Toplam Veli</div>
+                        </div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-icon">👶</div>
+                        <div class="status-info">
+                            <div class="status-number" id="total-children">0</div>
+                            <div class="status-label">Toplam Çocuk</div>
+                        </div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-icon">🦷</div>
+                        <div class="status-info">
+                            <div class="status-number" id="total-sessions">0</div>
+                            <div class="status-label">Toplam Fırçalama</div>
+                        </div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-icon">🏆</div>
+                        <div class="status-info">
+                            <div class="status-number" id="total-rewards">0</div>
+                            <div class="status-label">Kazanılan Rozet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hybrid Storage Status -->
+            <div class="admin-section">
+                <h3>🔄 Hibrit Storage Durumu</h3>
+                <div class="storage-status">
+                    <div class="storage-item">
+                        <div class="storage-icon">💾</div>
+                        <div class="storage-info">
+                            <div class="storage-title">Local Storage</div>
+                            <div class="storage-desc">Çevrimdışı veri depolama</div>
+                            <div class="storage-status-indicator local-storage">Aktif</div>
+                        </div>
+                    </div>
+                    <div class="storage-item">
+                        <div class="storage-icon">☁️</div>
+                        <div class="storage-info">
+                            <div class="storage-title">Backend Storage</div>
+                            <div class="storage-desc">Çevrimiçi senkronizasyon</div>
+                            <div class="storage-status-indicator" id="backend-storage-status">Test Edilmedi</div>
+                        </div>
+                    </div>
+                    <div class="storage-item">
+                        <div class="storage-icon">🔄</div>
+                        <div class="storage-info">
+                            <div class="storage-title">Sync Queue</div>
+                            <div class="storage-desc">Bekleyen senkronizasyon</div>
+                            <div class="storage-status-indicator" id="sync-queue-status">0 öğe</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="storage-actions">
+                    <button onclick="forceSyncAll()" class="btn-secondary">
+                        <span>🔄</span>
+                        Tümünü Senkronize Et
+                    </button>
+                    <button onclick="clearSyncQueue()" class="btn-secondary">
+                        <span>🗑️</span>
+                        Sync Kuyruğunu Temizle
+                    </button>
+                </div>
+            </div>
+
+            <!-- Backend Configuration -->
+            <div class="admin-section">
+                <h3>🌐 Backend Yapılandırması</h3>
+                <div class="config-form">
+                    <div class="form-group">
+                        <label for="admin-backend-url">Backend URL</label>
+                        <input type="url" id="admin-backend-url" placeholder="https://your-backend.onrender.com/api">
+                        <small>Backend API'niz için tam URL'yi girin</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Bağlantı Durumu</label>
+                        <div class="connection-status">
+                            <span id="admin-connection-status" class="status-offline">Test Edilmedi</span>
+                            <button onclick="testAdminConnection()" class="btn-secondary">Bağlantıyı Test Et</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug Settings -->
+            <div class="admin-section">
+                <h3>🐛 Debug Ayarları</h3>
+                <div class="debug-settings">
+                    <div class="setting-item">
+                        <label class="switch">
+                            <input type="checkbox" id="admin-debug-mode">
+                            <span class="slider"></span>
+                        </label>
+                        <div class="setting-info">
+                            <div class="setting-title">Debug Modu</div>
+                            <div class="setting-desc">Giriş ekranını atla, test verileri oluştur</div>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="switch">
+                            <input type="checkbox" id="admin-console-logs">
+                            <span class="slider"></span>
+                        </label>
+                        <div class="setting-info">
+                            <div class="setting-title">Console Logları</div>
+                            <div class="setting-desc">Detaylı sistem loglarını etkinleştir</div>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="switch">
+                            <input type="checkbox" id="admin-analytics">
+                            <span class="slider"></span>
+                        </label>
+                        <div class="setting-info">
+                            <div class="setting-title">Analytics</div>
+                            <div class="setting-desc">Kullanım istatistiklerini topla</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Management -->
+            <div class="admin-section">
+                <h3>💾 Veri Yönetimi</h3>
+                <div class="data-actions">
+                    <button onclick="exportAllData()" class="btn-secondary">
+                        <span>📤</span>
+                        Tüm Verileri Dışa Aktar
+                    </button>
+                    <button onclick="importData()" class="btn-secondary">
+                        <span>📥</span>
+                        Veri İçe Aktar
+                    </button>
+                    <button onclick="clearAllData()" class="btn-danger">
+                        <span>🗑️</span>
+                        Tüm Verileri Temizle
+                    </button>
+                </div>
+            </div>
+
+            <!-- System Logs -->
+            <div class="admin-section">
+                <h3>📋 Sistem Logları</h3>
+                <div class="logs-container">
+                    <div class="logs-header">
+                        <span>Son Aktiviteler</span>
+                        <button onclick="clearLogs()" class="btn-small">Temizle</button>
+                    </div>
+                    <div id="admin-logs" class="logs-content">
+                        <div class="log-entry">
+                            <span class="log-time">2024-01-15 14:30:22</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Admin paneli açıldı</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="admin-section">
+                <h3>⚡ Hızlı İşlemler</h3>
+                <div class="quick-actions">
+                    <button onclick="generateTestData()" class="action-btn">
+                        <span>🧪</span>
+                        <div>
+                            <div class="action-title">Test Verisi Oluştur</div>
+                            <div class="action-desc">Örnek veli ve çocuk verileri ekle</div>
+                        </div>
+                    </button>
+                    <button onclick="resetAllStreaks()" class="action-btn">
+                        <span>🔄</span>
+                        <div>
+                            <div class="action-title">Serileri Sıfırla</div>
+                            <div class="action-desc">Tüm çocukların serilerini sıfırla</div>
+                        </div>
+                    </button>
+                    <button onclick="recalculateRewards()" class="action-btn">
+                        <span>🏆</span>
+                        <div>
+                            <div class="action-title">Rozetleri Yeniden Hesapla</div>
+                            <div class="action-desc">Tüm rozetleri kontrol et ve güncelle</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="admin-actions">
+                <button onclick="saveAdminSettings()" class="btn-primary btn-large">
+                    💾 Ayarları Kaydet
+                </button>
             </div>
         </div>
     </div>
@@ -267,7 +448,6 @@
     <!-- Stats Screen -->
     <div id="stats-screen" class="screen">
         <div class="header">
-            <button class="back-btn" onclick="showScreen('dashboard-screen')">←</button>
             <h1>İstatistikler</h1>
             <div class="stats-filter">
                 <select id="stats-child-filter">
@@ -325,7 +505,6 @@
     <!-- Profile Screen -->
     <div id="profile-screen" class="screen">
         <div class="header">
-            <button class="back-btn" onclick="showScreen('dashboard-screen')">←</button>
             <h1>Profil</h1>
         </div>
 
@@ -362,25 +541,6 @@
                     <label>Akşam Hatırlatma</label>
                     <input type="time" id="evening-reminder" value="20:00">
                 </div>
-                
-                <!-- Admin Settings (Only visible if admin access granted) -->
-                <div id="admin-profile-settings" class="admin-settings" style="display: none;">
-                    <div class="admin-section-header">
-                        <span class="admin-badge">👨‍💼 Admin Ayarları</span>
-                    </div>
-                    <div class="setting-item">
-                        <label>Backend URL</label>
-                        <input type="url" id="profile-backend-url" placeholder="https://your-backend.onrender.com/api">
-                    </div>
-                    <div class="setting-item">
-                        <label>Debug Modu</label>
-                        <input type="checkbox" id="profile-debug-mode">
-                    </div>
-                    <div class="setting-item">
-                        <label>Analytics</label>
-                        <input type="checkbox" id="profile-analytics">
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -412,6 +572,7 @@
     <script src="data.js"></script>
     <script src="api.js"></script>
     <script src="timer.js"></script>
+    <script src="sync.js"></script>
     <script src="app.js"></script>
     
     <script>
