@@ -1,4 +1,3 @@
-
 // Global Variables
 let currentParent = null;
 let currentChild = null;
