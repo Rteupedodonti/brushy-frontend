@@ -1,1409 +1,1114 @@
-/* Enhanced CSS with admin access styles */
-:root {
-    --primary-color: #4CAF50;
-    --secondary-color: #FFC107;
-    --danger-color: #F44336;
-    --admin-color: #9C27B0;
-    --background-color: #F8F9FA;
-    --text-color: #2C3E50;
-    --border-color: #E0E0E0;
-    --shadow: 0 2px 10px rgba(0,0,0,0.1);
-    --border-radius: 12px;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    color: var(--text-color);
-}
-
-.screen {
-    display: none;
-    min-height: 100vh;
-    padding: 20px;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-.screen.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Auth Screen Styles */
-.auth-container {
-    max-width: 400px;
-    margin: 0 auto;
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 30px;
-    box-shadow: var(--shadow);
-    margin-top: 50px;
-    position: relative;
-}
-
-.app-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.tooth-icon {
-    font-size: 3rem;
-    margin-bottom: 10px;
-    animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-10px); }
-    60% { transform: translateY(-5px); }
-}
-
-.app-header h1 {
-    color: var(--primary-color);
-    margin-bottom: 10px;
-    font-size: 1.8rem;
-}
-
-.app-header p {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.auth-tabs {
-    display: flex;
-    margin-bottom: 20px;
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    background: #f5f5f5;
-}
-
-.auth-tab {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.auth-tab.active {
-    background: var(--primary-color);
-    color: white;
-}
-
-.auth-form {
-    display: none;
-}
-
-.auth-form.active {
-    display: block;
-}
-
-/* Admin Access Styles */
-.admin-access {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-}
-
-.admin-trigger {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: rgba(156, 39, 176, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    opacity: 0.5;
-}
-
-.admin-trigger:hover {
-    background: rgba(156, 39, 176, 0.2);
-    opacity: 1;
-    transform: scale(1.1);
-}
-
-.admin-icon {
-    font-size: 0.9rem;
-}
-
-.admin-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-    animation: fadeIn 0.3s ease;
-}
-
-.admin-modal-content {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 30px;
-    max-width: 350px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-.admin-modal-content h3 {
-    color: var(--admin-color);
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.admin-modal-content h3:before {
-    content: '🔐';
-}
-
-.admin-modal-content p {
-    color: #666;
-    margin-bottom: 20px;
-    font-size: 0.9rem;
-}
-
-.admin-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.admin-actions button {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.admin-actions button:first-child {
-    background: #f5f5f5;
-    color: #666;
-}
-
-.admin-actions button:last-child {
-    background: var(--admin-color);
-    color: white;
-}
-
-.admin-actions button:hover {
-    transform: translateY(-1px);
-}
-
-/* Advanced Settings Styles */
-.advanced-settings {
-    margin-top: 20px;
-    padding: 20px;
-    background: linear-gradient(135deg, rgba(156, 39, 176, 0.05), rgba(156, 39, 176, 0.1));
-    border-radius: var(--border-radius);
-    border: 2px solid rgba(156, 39, 176, 0.2);
-    position: relative;
-}
-
-.advanced-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.admin-badge {
-    background: var(--admin-color);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.close-advanced {
-    background: rgba(156, 39, 176, 0.1);
-    border: none;
-    border-radius: 50%;
-    width: 25px;
-    height: 25px;
-    cursor: pointer;
-    color: var(--admin-color);
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.close-advanced:hover {
-    background: rgba(156, 39, 176, 0.2);
-    transform: scale(1.1);
-}
-
-.advanced-content {
-    display: block;
-}
-
-.advanced-content .form-group {
-    margin-bottom: 15px;
-}
-
-.advanced-content small {
-    color: #666;
-    font-size: 0.75rem;
-    margin-top: 5px;
-    display: block;
-}
-
-.advanced-content label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.advanced-content input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--admin-color);
-}
-
-/* Admin Profile Settings */
-.admin-settings {
-    background: linear-gradient(135deg, rgba(156, 39, 176, 0.05), rgba(156, 39, 176, 0.1));
-    border-radius: var(--border-radius);
-    padding: 20px;
-    margin-top: 20px;
-    border: 2px solid rgba(156, 39, 176, 0.2);
-}
-
-.admin-section-header {
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-.admin-settings .setting-item {
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 10px;
-}
-
-.admin-settings .setting-item:last-child {
-    margin-bottom: 0;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-.form-group input,
-.form-group select {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 16px;
-    transition: border-color 0.3s ease;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-.advanced-settings .form-group input:focus {
-    border-color: var(--admin-color);
-}
-
-/* Button Styles */
-.btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, var(--primary-color), #45a049);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-}
-
-.btn-secondary {
-    background: var(--secondary-color);
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-danger {
-    background: var(--danger-color);
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-/* Header Styles */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: white;
-    padding: 20px;
-    border-radius: var(--border-radius);
-    margin-bottom: 20px;
-    box-shadow: var(--shadow);
-}
-
-.header-left h1 {
-    color: var(--primary-color);
-    font-size: 1.5rem;
-    margin-bottom: 5px;
-}
-
-.sync-status {
-    font-size: 0.8rem;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-weight: 500;
-}
-
-.sync-online {
-    background: #d4edda;
-    color: #155724;
-}
-
-.sync-offline {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.sync-error {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.profile-btn {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.profile-btn:hover {
-    transform: scale(1.1);
-}
-
-/* Back Button Styles */
-.back-btn {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 15px;
-}
-
-.back-btn:hover {
-    transform: scale(1.1);
-    background: #45a049;
-}
-
-/* Children Section */
-.children-section {
-    margin-bottom: 30px;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.section-header h2 {
-    color: white;
-    font-size: 1.3rem;
-}
-
-.children-grid {
-    display: grid;
-    gap: 15px;
-}
-
-.child-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 20px;
-    box-shadow: var(--shadow);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.child-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-}
-
-.child-avatar {
-    font-size: 2.5rem;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: #f0f0f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.child-info {
-    flex: 1;
-}
-
-.child-info h3 {
-    color: var(--text-color);
-    margin-bottom: 5px;
-}
-
-.child-info p {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.streak-badge {
-    background: var(--primary-color);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    margin-top: 5px;
-    display: inline-block;
-}
-
-.child-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.quick-timer {
-    background: #f0f0f0;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.quick-timer:hover {
-    background: var(--primary-color);
-    color: white;
-    transform: scale(1.1);
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    background: white;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-}
-
-.empty-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    opacity: 0.5;
-}
-
-.empty-state h3 {
-    color: var(--text-color);
-    margin-bottom: 10px;
-}
-
-.empty-state p {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-/* Modal Styles */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 30px;
-    max-width: 400px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.modal-content h3 {
-    color: var(--primary-color);
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.form-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.form-actions button {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-/* Avatar Selection */
-.avatar-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.avatar-option {
-    aspect-ratio: 1;
-    border: 2px solid var(--border-color);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.avatar-option:hover {
-    border-color: var(--primary-color);
-    transform: scale(1.1);
-}
-
-.avatar-option.selected {
-    border-color: var(--primary-color);
-    background: rgba(76, 175, 80, 0.1);
-}
-
-/* Child Detail Screen */
-.child-profile {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 30px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow);
-    text-align: center;
-}
-
-.child-avatar-large {
-    font-size: 4rem;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: #f0f0f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
-}
-
-.child-info h2 {
-    color: var(--primary-color);
-    margin-bottom: 5px;
-}
-
-.child-info p {
-    color: #666;
-    margin-bottom: 20px;
-}
-
-.streak-info {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-}
-
-.streak-item {
-    text-align: center;
-}
-
-.streak-number {
-    display: block;
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--primary-color);
-}
-
-.streak-label {
-    font-size: 0.9rem;
-    color: #666;
-}
-
-/* Quick Actions */
-.quick-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.action-btn {
-    background: white;
-    border: none;
-    border-radius: var(--border-radius);
-    padding: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.action-btn:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-}
-
-.action-btn.morning {
-    border-left: 4px solid #FFC107;
-}
-
-.action-btn.evening {
-    border-left: 4px solid #9C27B0;
-}
-
-.action-btn span:first-child {
-    font-size: 2rem;
-}
-
-.action-btn span:last-child {
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-/* Rewards Section */
-.rewards-section,
-.recent-activity {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow);
-}
-
-.rewards-section h3,
-.recent-activity h3 {
-    color: var(--primary-color);
-    margin-bottom: 15px;
-}
-
-.rewards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 15px;
-}
-
-.reward-badge {
-    text-align: center;
-    padding: 15px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.reward-badge.earned {
-    background: linear-gradient(135deg, #FFD700, #FFA500);
-    color: white;
-    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-}
-
-.reward-badge.lost {
-    background: #f8f9fa;
-    color: #6c757d;
-    opacity: 0.6;
-}
-
-.reward-badge.not-earned {
-    background: #f8f9fa;
-    color: #6c757d;
-    border: 2px dashed #dee2e6;
-}
-
-.reward-icon {
-    font-size: 2rem;
-    margin-bottom: 8px;
-}
-
-.reward-name {
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-/* Activity List */
-.activity-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.activity-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-}
-
-.activity-icon {
-    font-size: 1.5rem;
-    width: 40px;
-    text-align: center;
-}
-
-.activity-info {
-    flex: 1;
-}
-
-.activity-title {
-    font-weight: 500;
-    color: var(--text-color);
-    margin-bottom: 3px;
-}
-
-.activity-details {
-    font-size: 0.8rem;
-    color: #666;
-}
-
-.activity-score {
-    font-size: 1.2rem;
-}
-
-.no-activity {
-    text-align: center;
-    color: #666;
-    font-style: italic;
-    padding: 20px;
-}
-
-/* Timer Screen */
-.timer-container {
-    max-width: 400px;
-    margin: 0 auto;
-    text-align: center;
-}
-
-.timer-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 30px;
-    position: relative;
-}
-
-.timer-header h2 {
-    color: white;
-    font-size: 1.5rem;
-}
-
-.timer-header .back-btn {
-    position: absolute;
-    left: 0;
-}
-
-.session-type {
-    background: rgba(255,255,255,0.2);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 30px;
-    display: inline-block;
-}
-
-.timer-circle {
-    width: 250px;
-    height: 250px;
-    border-radius: 50%;
-    background: white;
-    margin: 0 auto 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-
-.timer-display {
-    text-align: center;
-}
-
-.timer-display span {
-    font-size: 3rem;
-    font-weight: bold;
-    color: var(--primary-color);
-}
-
-.timer-colon {
-    animation: blink 1s infinite;
-}
-
-@keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
-}
-
-.timer-progress {
-    position: absolute;
-    top: -5px;
-    left: -5px;
-    width: 260px;
-    height: 260px;
-    border-radius: 50%;
-    border: 5px solid transparent;
-    border-top: 5px solid var(--primary-color);
-    transition: transform 0.1s ease;
-}
-
-.timer-controls {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-bottom: 30px;
-}
-
-.brushing-tips {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow);
-}
-
-.brushing-tips h3 {
-    color: var(--primary-color);
-    margin-bottom: 10px;
-}
-
-.brushing-tips p {
-    color: #666;
-    line-height: 1.5;
-}
-
-/* Stats Screen */
-.stats-overview {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.stat-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 20px;
-    text-align: center;
-    box-shadow: var(--shadow);
-}
-
-.stat-number {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--primary-color);
-    margin-bottom: 5px;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.stats-charts {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 20px;
-    box-shadow: var(--shadow);
-}
-
-.chart-section {
-    margin-bottom: 30px;
-}
-
-.chart-section h3 {
-    color: var(--primary-color);
-    margin-bottom: 15px;
-}
-
-.chart {
-    min-height: 200px;
-    display: flex;
-    align-items: end;
-    justify-content: space-around;
-    gap: 10px;
-    padding: 20px 0;
-}
-
-.chart-bar {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 40px;
-}
-
-.bar {
-    width: 100%;
-    background: linear-gradient(135deg, var(--primary-color), #45a049);
-    border-radius: 4px 4px 0 0;
-    min-height: 10px;
-    transition: all 0.3s ease;
-}
-
-.bar-label {
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 5px;
-}
-
-.bar-value {
-    font-size: 0.7rem;
-    color: var(--primary-color);
-    font-weight: 500;
-    margin-top: 2px;
-}
-
-.distribution-item {
-    margin-bottom: 20px;
-}
-
-.distribution-bar {
-    height: 20px;
-    border-radius: 10px;
-    overflow: hidden;
-    display: flex;
-    margin-bottom: 10px;
-}
-
-.bar-segment.morning {
-    background: #FFC107;
-}
-
-.bar-segment.evening {
-    background: #9C27B0;
-}
-
-.distribution-legend {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.9rem;
-}
-
-.legend-color {
-    width: 12px;
-    height: 12px;
-    border-radius: 2px;
-}
-
-.legend-color.morning {
-    background: #FFC107;
-}
-
-.legend-color.evening {
-    background: #9C27B0;
-}
-
-.no-data {
-    text-align: center;
-    color: #666;
-    font-style: italic;
-    padding: 40px;
-}
-
-/* Profile Screen */
-.profile-section {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow);
-}
-
-.profile-section h3 {
-    color: var(--primary-color);
-    margin-bottom: 15px;
-}
-
-.profile-info {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.info-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.info-item:last-child {
-    border-bottom: none;
-}
-
-.info-item label {
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-.info-item span {
-    color: #666;
-}
-
-.settings-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.setting-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.setting-item:last-child {
-    border-bottom: none;
-}
-
-.setting-item label {
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-.setting-item input[type="time"],
-.setting-item input[type="url"] {
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 0.9rem;
-}
-
-.setting-item input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    accent-color: var(--primary-color);
-}
-
-.profile-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* Bottom Navigation */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    padding: 10px 0;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-}
-
-.nav-btn {
-    flex: 1;
-    background: none;
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    padding: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    color: #666;
-}
-
-.nav-btn.active {
-    color: var(--primary-color);
-}
-
-.nav-btn:hover {
-    background: rgba(76, 175, 80, 0.1);
-}
-
-.nav-btn span:first-child {
-    font-size: 1.2rem;
-}
-
-.nav-btn span:last-child {
-    font-size: 0.7rem;
-    font-weight: 500;
-}
-
-/* Notifications */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 20px;
-    border-radius: 8px;
-    color: white;
-    font-weight: 500;
-    z-index: 1000;
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    max-width: 300px;
-}
-
-.notification.show {
-    transform: translateX(0);
-}
-
-.notification.success {
-    background: var(--primary-color);
-}
-
-.notification.error {
-    background: var(--danger-color);
-}
-
-.notification.info {
-    background: #2196F3;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .screen {
-        padding: 15px;
+// Global Variables
+let currentParent = null;
+let currentChild = null;
+let children = [];
+let currentScreen = 'auth-screen';
+let isAdminMode = false;
+let debugMode = false;
+
+// Admin Configuration
+const ADMIN_PASSWORD = 'admin2024'; // Change this in production
+const ADMIN_SESSION_KEY = 'toothbrush_admin_session';
+
+// Initialize App
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+    setupEventListeners();
+    checkDebugMode();
+    checkAuthStatus();
+    checkAdminSession();
+});
+
+function initializeApp() {
+    // Load data from storage
+    loadParentData();
+    loadChildrenData();
+    
+    // Setup avatars
+    setupAvatarSelection();
+    
+    // Setup auth tabs
+    setupAuthTabs();
+    
+    // Initialize sync status
+    updateSyncStatus();
+}
+
+function checkDebugMode() {
+    const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
+    debugMode = adminSettings.debugMode || false;
+    
+    if (debugMode) {
+        console.log('🐛 DEBUG MODE ACTIVE');
+        // Skip auth screen in debug mode
+        const parent = getParentData();
+        if (!parent) {
+            // Create a debug parent automatically
+            const debugParent = {
+                id: 'debug-parent-' + Date.now(),
+                name: 'Debug Veli',
+                phone: '05551234567',
+                email: 'debug@test.com',
+                created_at: new Date().toISOString()
+            };
+            currentParent = debugParent;
+            saveParentData(debugParent);
+            console.log('🐛 Debug parent created:', debugParent);
+        }
+        
+        // Load debug children if none exist
+        const existingChildren = getChildrenData();
+        if (existingChildren.length === 0) {
+            const debugChildren = [
+                {
+                    id: 'debug-child-1',
+                    parent_id: currentParent.id,
+                    name: 'Test Çocuk 1',
+                    age: 5,
+                    avatar: 2,
+                    current_streak: 3,
+                    longest_streak: 7,
+                    created_at: new Date().toISOString()
+                },
+                {
+                    id: 'debug-child-2',
+                    parent_id: currentParent.id,
+                    name: 'Test Çocuk 2',
+                    age: 8,
+                    avatar: 5,
+                    current_streak: 1,
+                    longest_streak: 4,
+                    created_at: new Date().toISOString()
+                }
+            ];
+            children = debugChildren;
+            saveChildrenData(debugChildren);
+            console.log('🐛 Debug children created:', debugChildren);
+        }
+        
+        // Show debug info panel
+        showDebugPanel();
+    }
+}
+
+function showDebugPanel() {
+    const debugPanel = document.createElement('div');
+    debugPanel.id = 'debug-panel';
+    debugPanel.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.8);
+        color: #00ff00;
+        padding: 10px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 12px;
+        z-index: 9999;
+        max-width: 300px;
+        border: 2px solid #00ff00;
+    `;
+    
+    debugPanel.innerHTML = `
+        <div style="color: #ff6b6b; font-weight: bold; margin-bottom: 5px;">🐛 DEBUG MODE</div>
+        <div>Parent: ${currentParent?.name || 'None'}</div>
+        <div>Children: ${children.length}</div>
+        <div>Screen: <span id="debug-screen">${currentScreen}</span></div>
+        <div>Backend: <span id="debug-backend">${getBackendUrl() || 'Local'}</span></div>
+        <button onclick="toggleDebugDetails()" style="margin-top: 5px; background: #333; color: #00ff00; border: 1px solid #00ff00; padding: 2px 6px; border-radius: 3px; cursor: pointer;">Details</button>
+        <div id="debug-details" style="display: none; margin-top: 5px; font-size: 10px;">
+            <div>LocalStorage Keys:</div>
+            <div style="margin-left: 10px;">
+                ${Object.keys(localStorage).filter(k => k.startsWith('toothbrush_')).map(k => `• ${k}`).join('<br>')}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(debugPanel);
+}
+
+function toggleDebugDetails() {
+    const details = document.getElementById('debug-details');
+    details.style.display = details.style.display === 'none' ? 'block' : 'none';
+}
+
+function updateDebugPanel() {
+    if (!debugMode) return;
+    
+    const screenSpan = document.getElementById('debug-screen');
+    const backendSpan = document.getElementById('debug-backend');
+    
+    if (screenSpan) screenSpan.textContent = currentScreen;
+    if (backendSpan) backendSpan.textContent = getBackendUrl() || 'Local';
+}
+
+function setupEventListeners() {
+    // Auth forms
+    document.getElementById('parent-register-form').addEventListener('submit', handleParentRegister);
+    document.getElementById('parent-login-form').addEventListener('submit', handleParentLogin);
+    document.getElementById('child-form').addEventListener('submit', handleChildAdd);
+    
+    // Settings
+    document.getElementById('notifications-enabled').addEventListener('change', saveSettings);
+    document.getElementById('morning-reminder').addEventListener('change', saveSettings);
+    document.getElementById('evening-reminder').addEventListener('change', saveSettings);
+    
+    // Back buttons
+    setupBackButtons();
+}
+
+function setupBackButtons() {
+    // Timer back button
+    const timerBackBtn = document.querySelector('#timer-screen .back-btn');
+    if (timerBackBtn) {
+        timerBackBtn.addEventListener('click', () => {
+            showScreen('dashboard-screen');
+        });
     }
     
-    .auth-container {
-        margin-top: 20px;
-        padding: 20px;
+    // Child detail back button
+    const childDetailBackBtn = document.querySelector('#child-detail-screen .back-btn');
+    if (childDetailBackBtn) {
+        childDetailBackBtn.addEventListener('click', () => {
+            showScreen('dashboard-screen');
+        });
     }
     
-    .timer-circle {
-        width: 200px;
-        height: 200px;
+    // Stats back button
+    const statsBackBtn = document.querySelector('#stats-screen .back-btn');
+    if (statsBackBtn) {
+        statsBackBtn.addEventListener('click', () => {
+            showScreen('dashboard-screen');
+        });
     }
     
-    .timer-progress {
-        width: 210px;
-        height: 210px;
-    }
-    
-    .timer-display span {
-        font-size: 2.5rem;
-    }
-    
-    .quick-actions {
-        grid-template-columns: 1fr;
-    }
-    
-    .stats-overview {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .children-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .avatar-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    
-    .admin-modal-content {
-        padding: 20px;
+    // Profile back button
+    const profileBackBtn = document.querySelector('#profile-screen .back-btn');
+    if (profileBackBtn) {
+        profileBackBtn.addEventListener('click', () => {
+            showScreen('dashboard-screen');
+        });
     }
 }
 
-@media (max-width: 480px) {
-    .header {
-        padding: 15px;
-    }
+function setupAuthTabs() {
+    const tabs = document.querySelectorAll('.auth-tab');
+    const forms = document.querySelectorAll('.auth-form');
     
-    .header-left h1 {
-        font-size: 1.2rem;
-    }
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs and forms
+            tabs.forEach(t => t.classList.remove('active'));
+            forms.forEach(f => f.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            tab.classList.add('active');
+            
+            // Show corresponding form
+            const tabType = tab.dataset.tab;
+            document.getElementById(`${tabType}-form`).classList.add('active');
+        });
+    });
+}
+
+// Admin Access Functions
+function showAdminLogin() {
+    document.getElementById('admin-login-modal').style.display = 'flex';
+    document.getElementById('admin-password').focus();
     
-    .child-card {
-        padding: 15px;
-    }
+    // Add enter key listener
+    document.getElementById('admin-password').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            verifyAdminAccess();
+        }
+    });
+}
+
+function hideAdminLogin() {
+    document.getElementById('admin-login-modal').style.display = 'none';
+    document.getElementById('admin-password').value = '';
+}
+
+function verifyAdminAccess() {
+    const password = document.getElementById('admin-password').value;
     
-    .child-avatar {
-        width: 50px;
-        height: 50px;
-        font-size: 2rem;
-    }
-    
-    .modal-content {
-        padding: 20px;
-    }
-    
-    .timer-circle {
-        width: 180px;
-        height: 180px;
-    }
-    
-    .timer-progress {
-        width: 190px;
-        height: 190px;
-    }
-    
-    .timer-display span {
-        font-size: 2rem;
-    }
-    
-    .advanced-settings {
-        padding: 15px;
-    }
-    
-    .admin-modal-content {
-        padding: 20px;
-        margin: 20px;
+    if (password === ADMIN_PASSWORD) {
+        isAdminMode = true;
+        localStorage.setItem(ADMIN_SESSION_KEY, Date.now().toString());
+        
+        // Show advanced settings
+        document.getElementById('advanced-settings').style.display = 'block';
+        hideAdminLogin();
+        
+        // Show success message
+        showNotification('Admin erişimi başarılı! 👨‍💼', 'success');
+        
+        // Load saved admin settings
+        loadAdminSettings();
+    } else {
+        showNotification('Hatalı admin şifresi! ❌', 'error');
+        document.getElementById('admin-password').value = '';
+        document.getElementById('admin-password').focus();
     }
 }
 
-/* Loading animations */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+function hideAdvancedSettings() {
+    document.getElementById('advanced-settings').style.display = 'none';
+    isAdminMode = false;
+    localStorage.removeItem(ADMIN_SESSION_KEY);
+    showNotification('Admin modundan çıkıldı', 'info');
 }
 
-.loading {
-    animation: spin 1s linear infinite;
+function checkAdminSession() {
+    const adminSession = localStorage.getItem(ADMIN_SESSION_KEY);
+    if (adminSession) {
+        const sessionTime = parseInt(adminSession);
+        const currentTime = Date.now();
+        const sessionDuration = 24 * 60 * 60 * 1000; // 24 hours
+        
+        if (currentTime - sessionTime < sessionDuration) {
+            isAdminMode = true;
+            // Show admin settings in profile if logged in
+            if (currentParent) {
+                showAdminProfileSettings();
+            }
+        } else {
+            localStorage.removeItem(ADMIN_SESSION_KEY);
+        }
+    }
 }
 
-/* Scrollbar Styles */
-::-webkit-scrollbar {
-    width: 8px;
+function showAdminProfileSettings() {
+    const adminSettings = document.getElementById('admin-profile-settings');
+    if (adminSettings && isAdminMode) {
+        adminSettings.style.display = 'block';
+        loadAdminProfileSettings();
+    }
 }
 
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #45a049;
-}
-
-/* Print Styles */
-@media print {
-    .bottom-nav,
-    .header,
-    .timer-controls,
-    .profile-actions,
-    .admin-access,
-    .advanced-settings,
-    .admin-settings {
-        display: none !important;
+function loadAdminSettings() {
+    // Load backend URL
+    const savedBackendUrl = localStorage.getItem('backend_url');
+    if (savedBackendUrl) {
+        document.getElementById('backend-url').value = savedBackendUrl;
     }
     
-    .screen {
-        padding: 0;
-        min-height: auto;
+    // Load other admin settings
+    const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
+    document.getElementById('debug-mode').checked = adminSettings.debugMode || false;
+    document.getElementById('analytics-enabled').checked = adminSettings.analytics || false;
+    
+    if (adminSettings.adminEmail) {
+        document.getElementById('admin-email').value = adminSettings.adminEmail;
+    }
+}
+
+function loadAdminProfileSettings() {
+    const savedBackendUrl = localStorage.getItem('backend_url');
+    if (savedBackendUrl) {
+        document.getElementById('profile-backend-url').value = savedBackendUrl;
     }
     
-    body {
-        background: white;
+    const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
+    document.getElementById('profile-debug-mode').checked = adminSettings.debugMode || false;
+    document.getElementById('profile-analytics').checked = adminSettings.analytics || false;
+}
+
+function saveAdminSettings() {
+    if (!isAdminMode) return;
+    
+    const adminSettings = {
+        debugMode: document.getElementById('debug-mode')?.checked || document.getElementById('profile-debug-mode')?.checked || false,
+        analytics: document.getElementById('analytics-enabled')?.checked || document.getElementById('profile-analytics')?.checked || false,
+        adminEmail: document.getElementById('admin-email')?.value || ''
+    };
+    
+    localStorage.setItem('admin_settings', JSON.stringify(adminSettings));
+    
+    // Save backend URL
+    const backendUrl = document.getElementById('backend-url')?.value || document.getElementById('profile-backend-url')?.value;
+    if (backendUrl) {
+        localStorage.setItem('backend_url', backendUrl);
+        setBackendUrl(backendUrl);
     }
+    
+    // Update debug mode
+    const wasDebugMode = debugMode;
+    debugMode = adminSettings.debugMode;
+    
+    if (debugMode && !wasDebugMode) {
+        showNotification('Debug modu etkinleştirildi! Sayfa yenileniyor...', 'info');
+        setTimeout(() => location.reload(), 1500);
+    } else if (!debugMode && wasDebugMode) {
+        showNotification('Debug modu kapatıldı! Sayfa yenileniyor...', 'info');
+        setTimeout(() => location.reload(), 1500);
+    } else {
+        showNotification('Admin ayarları kaydedildi', 'success');
+    }
+}
+
+function checkAuthStatus() {
+    // Skip auth in debug mode
+    if (debugMode) {
+        showScreen('dashboard-screen');
+        loadDashboard();
+        return;
+    }
+    
+    const parent = getParentData();
+    if (parent && parent.id) {
+        currentParent = parent;
+        showScreen('dashboard-screen');
+        loadDashboard();
+        
+        // Show admin settings in profile if admin mode is active
+        if (isAdminMode) {
+            showAdminProfileSettings();
+        }
+    } else {
+        showScreen('auth-screen');
+    }
+}
+
+async function handleParentRegister(e) {
+    e.preventDefault();
+    
+    const formData = {
+        name: document.getElementById('parent-name').value,
+        phone: document.getElementById('parent-phone').value,
+        email: document.getElementById('parent-email').value || null
+    };
+    
+    // Save admin settings if in admin mode
+    if (isAdminMode) {
+        saveAdminSettings();
+    }
+    
+    try {
+        // Try to register with backend first
+        const parent = await registerParent(formData);
+        
+        if (parent) {
+            currentParent = parent;
+            saveParentData(parent);
+            showScreen('dashboard-screen');
+            loadDashboard();
+            showNotification('Kayıt başarılı!', 'success');
+        }
+    } catch (error) {
+        // Fallback to local storage
+        const localParent = {
+            id: generateId(),
+            ...formData,
+            created_at: new Date().toISOString()
+        };
+        
+        currentParent = localParent;
+        saveParentData(localParent);
+        showScreen('dashboard-screen');
+        loadDashboard();
+        showNotification('Çevrimdışı kayıt yapıldı', 'info');
+    }
+    
+    // Show admin settings in profile if admin mode is active
+    if (isAdminMode) {
+        showAdminProfileSettings();
+    }
+}
+
+async function handleParentLogin(e) {
+    e.preventDefault();
+    
+    const phone = document.getElementById('login-phone').value;
+    const name = document.getElementById('login-name').value;
+    
+    try {
+        // Try to login with backend
+        const parent = await loginParent({ phone, name });
+        
+        if (parent) {
+            currentParent = parent;
+            saveParentData(parent);
+            
+            // Load children from backend
+            const backendChildren = await getChildrenByParent(parent.id);
+            if (backendChildren && backendChildren.length > 0) {
+                children = backendChildren;
+                saveChildrenData(children);
+            }
+            
+            showScreen('dashboard-screen');
+            loadDashboard();
+            showNotification('Giriş başarılı!', 'success');
+        }
+    } catch (error) {
+        // Fallback to local storage
+        const localParent = getParentData();
+        if (localParent && localParent.phone === phone && localParent.name === name) {
+            currentParent = localParent;
+            showScreen('dashboard-screen');
+            loadDashboard();
+            showNotification('Çevrimdışı giriş yapıldı', 'info');
+        } else {
+            showNotification('Giriş bilgileri hatalı', 'error');
+        }
+    }
+    
+    // Show admin settings in profile if admin mode is active
+    if (isAdminMode) {
+        showAdminProfileSettings();
+    }
+}
+
+function loadDashboard() {
+    // Update parent name display
+    document.getElementById('parent-name-display').textContent = currentParent.name;
+    
+    // Load children for current parent
+    children = getChildrenData().filter(child => child.parent_id === currentParent.id);
+    renderChildren();
+    
+    // Update profile info
+    updateProfileInfo();
+    
+    // Load stats
+    loadStats();
+    
+    // Setup reminders
+    setupReminders();
+    
+    if (debugMode) {
+        console.log('🐛 Dashboard loaded:', {
+            parent: currentParent,
+            children: children.length,
+            screen: currentScreen
+        });
+    }
+}
+
+function renderChildren() {
+    const container = document.getElementById('children-list');
+    
+    if (children.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">👶</div>
+                <h3>Henüz çocuk eklenmemiş</h3>
+                <p>İlk çocuğunuzu eklemek için "Çocuk Ekle" butonuna tıklayın</p>
+                ${debugMode ? '<small style="color: #666; margin-top: 10px;">🐛 Debug modunda test çocukları otomatik oluşturuldu</small>' : ''}
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = children.map(child => `
+        <div class="child-card" onclick="showChildDetail('${child.id}')">
+            <div class="child-avatar">${getAvatarEmoji(child.avatar)}</div>
+            <div class="child-info">
+                <h3>${child.name} ${debugMode ? '<span style="font-size: 0.7em; color: #666;">[ID: ' + child.id.substring(0, 8) + ']</span>' : ''}</h3>
+                <p>${child.age} yaşında</p>
+                <div class="child-streak">
+                    <span class="streak-badge">${child.current_streak || 0} gün</span>
+                </div>
+            </div>
+            <div class="child-actions">
+                <button class="quick-timer" onclick="event.stopPropagation(); quickTimer('${child.id}', 'morning')">🌅</button>
+                <button class="quick-timer" onclick="event.stopPropagation(); quickTimer('${child.id}', 'evening')">🌙</button>
+            </div>
+        </div>
+    `).join('');
+    
+    if (debugMode) {
+        console.log('🐛 Rendered children:', children);
+    }
+}
+
+function showAddChildForm() {
+    document.getElementById('add-child-form').style.display = 'flex';
+    setupAvatarSelection();
+}
+
+function hideAddChildForm() {
+    document.getElementById('add-child-form').style.display = 'none';
+    document.getElementById('child-form').reset();
+}
+
+async function handleChildAdd(e) {
+    e.preventDefault();
+    
+    const selectedAvatar = document.querySelector('.avatar-option.selected');
+    if (!selectedAvatar) {
+        showNotification('Lütfen bir avatar seçin', 'error');
+        return;
+    }
+    
+    const childData = {
+        parent_id: currentParent.id,
+        name: document.getElementById('child-name').value,
+        age: parseInt(document.getElementById('child-age').value),
+        avatar: selectedAvatar.dataset.avatar,
+        current_streak: 0,
+        longest_streak: 0
+    };
+    
+    if (debugMode) {
+        console.log('🐛 Adding child:', childData);
+    }
+    
+    try {
+        // Try to add child to backend
+        const child = await addChild(childData);
+        
+        if (child) {
+            children.push(child);
+            // Save all children (including other parents' children)
+            const allChildren = getChildrenData();
+            allChildren.push(child);
+            saveChildrenData(allChildren);
+            renderChildren();
+            hideAddChildForm();
+            showNotification('Çocuk başarıyla eklendi!', 'success');
+        }
+    } catch (error) {
+        // Fallback to local storage
+        const localChild = {
+            id: generateId(),
+            ...childData,
+            created_at: new Date().toISOString()
+        };
+        
+        children.push(localChild);
+        // Save all children (including other parents' children)
+        const allChildren = getChildrenData();
+        allChildren.push(localChild);
+        saveChildrenData(allChildren);
+        renderChildren();
+        hideAddChildForm();
+        showNotification('Çocuk çevrimdışı eklendi', 'info');
+        
+        if (debugMode) {
+            console.log('🐛 Child added locally:', localChild);
+        }
+    }
+}
+
+function setupAvatarSelection() {
+    const avatars = [
+        '👶', '🧒', '👦', '👧', '🧑', '👨', '👩', '🧔',
+        '👱', '👴', '👵', '🙍', '🙎', '🙅', '🙆', '💁',
+        '🙋', '🧏', '🙇', '🤦', '🤷', '👨‍⚕️', '👩‍⚕️', '👨‍🎓'
+    ];
+    
+    const container = document.getElementById('avatar-selection');
+    container.innerHTML = avatars.map((avatar, index) => `
+        <div class="avatar-option" data-avatar="${index}" onclick="selectAvatar(this)">
+            ${avatar}
+        </div>
+    `).join('');
+}
+
+function selectAvatar(element) {
+    document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('selected'));
+    element.classList.add('selected');
+}
+
+function getAvatarEmoji(avatarIndex) {
+    const avatars = [
+        '👶', '🧒', '👦', '👧', '🧑', '👨', '👩', '🧔',
+        '👱', '👴', '👵', '🙍', '🙎', '🙅', '🙆', '💁',
+        '🙋', '🧏', '🙇', '🤦', '🤷', '👨‍⚕️', '👩‍⚕️', '👨‍🎓'
+    ];
+    return avatars[avatarIndex] || '👶';
+}
+
+function showChildDetail(childId) {
+    const child = children.find(c => c.id === childId);
+    if (!child) return;
+    
+    currentChild = child;
+    
+    if (debugMode) {
+        console.log('🐛 Showing child detail:', child);
+    }
+    
+    // Update child detail display
+    document.getElementById('child-detail-name').textContent = child.name;
+    document.getElementById('child-detail-name-display').textContent = child.name;
+    document.getElementById('child-detail-age').textContent = `${child.age} yaşında`;
+    document.getElementById('child-detail-avatar').textContent = getAvatarEmoji(child.avatar);
+    document.getElementById('current-streak').textContent = child.current_streak || 0;
+    document.getElementById('longest-streak').textContent = child.longest_streak || 0;
+    
+    // Load child's rewards and recent activity
+    loadChildRewards(child.id);
+    loadRecentActivity(child.id);
+    
+    showScreen('child-detail-screen');
+}
+
+function quickTimer(childId, sessionType) {
+    const child = children.find(c => c.id === childId);
+    if (!child) return;
+    
+    currentChild = child;
+    startTimer(sessionType);
+}
+
+function startTimer(sessionType) {
+    if (!currentChild) {
+        showNotification('Lütfen önce bir çocuk seçin', 'error');
+        return;
+    }
+    
+    if (debugMode) {
+        console.log('🐛 Starting timer:', { child: currentChild.name, session: sessionType });
+    }
+    
+    // Set session type
+    document.getElementById('session-type-display').textContent = 
+        sessionType === 'morning' ? 'Sabah' : 'Akşam';
+    
+    showScreen('timer-screen');
+    initializeTimer(sessionType);
+}
+
+function showScreen(screenId) {
+    // Hide all screens
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+    
+    // Show target screen
+    document.getElementById(screenId).classList.add('active');
+    currentScreen = screenId;
+    
+    // Update navigation
+    updateNavigation(screenId);
+    
+    // Update debug panel
+    updateDebugPanel();
+    
+    if (debugMode) {
+        console.log('🐛 Screen changed to:', screenId);
+    }
+}
+
+function updateNavigation(screenId) {
+    const navBtns = document.querySelectorAll('.nav-btn');
+    navBtns.forEach(btn => btn.classList.remove('active'));
+    
+    // Map screen IDs to navigation buttons
+    const screenNavMap = {
+        'dashboard-screen': 0,
+        'timer-screen': 1,
+        'stats-screen': 2,
+        'profile-screen': 3
+    };
+    
+    const navIndex = screenNavMap[screenId];
+    if (navIndex !== undefined && navBtns[navIndex]) {
+        navBtns[navIndex].classList.add('active');
+    }
+}
+
+function loadChildRewards(childId) {
+    const rewards = getChildRewards(childId);
+    const container = document.getElementById('child-rewards');
+    
+    const rewardTypes = [
+        { type: 'first_brush', name: 'İlk Fırçalama', icon: '🦷' },
+        { type: 'week_streak', name: '7 Gün Seri', icon: '📅' },
+        { type: 'month_streak', name: '30 Gün Seri', icon: '🗓️' },
+        { type: 'perfect_week', name: 'Mükemmel Hafta', icon: '⭐' },
+        { type: 'early_bird', name: 'Erken Kuş', icon: '🌅' },
+        { type: 'night_owl', name: 'Gece Kuşu', icon: '🌙' },
+        { type: 'speed_demon', name: 'Hız Canavarı', icon: '⚡' },
+        { type: 'patience_master', name: 'Sabır Ustası', icon: '🧘' },
+        { type: 'consistency_king', name: 'Tutarlılık Kralı', icon: '👑' },
+        { type: 'champion', name: 'Şampiyon', icon: '🏆' }
+    ];
+    
+    container.innerHTML = rewardTypes.map(reward => {
+        const earned = rewards.find(r => r.type === reward.type);
+        const status = earned ? (earned.status === 'lost' ? 'lost' : 'earned') : 'not-earned';
+        
+        return `
+            <div class="reward-badge ${status}">
+                <div class="reward-icon">${reward.icon}</div>
+                <div class="reward-name">${reward.name}</div>
+                ${debugMode ? '<div style="font-size: 0.6em; color: #666;">' + status + '</div>' : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function loadRecentActivity(childId) {
+    const records = getBrushingRecords(childId);
+    const container = document.getElementById('recent-brushing');
+    
+    if (records.length === 0) {
+        container.innerHTML = `
+            <p class="no-activity">Henüz fırçalama kaydı yok</p>
+            ${debugMode ? '<small style="color: #666;">🐛 Debug modunda test verileri oluşturulabilir</small>' : ''}
+        `;
+        return;
+    }
+    
+    const recent = records.slice(0, 5);
+    container.innerHTML = recent.map(record => `
+        <div class="activity-item">
+            <div class="activity-icon">${record.session_type === 'morning' ? '🌅' : '🌙'}</div>
+            <div class="activity-info">
+                <div class="activity-title">${record.session_type === 'morning' ? 'Sabah' : 'Akşam'} Fırçalama</div>
+                <div class="activity-details">
+                    ${formatDate(record.brush_time)} - ${Math.floor(record.duration / 60)}:${(record.duration % 60).toString().padStart(2, '0')}
+                    ${debugMode ? '<br><small style="color: #666;">ID: ' + record.id?.substring(0, 8) + '</small>' : ''}
+                </div>
+            </div>
+            <div class="activity-score">${'⭐'.repeat(record.quality_score || 3)}</div>
+        </div>
+    `).join('');
+}
+
+function loadStats() {
+    const allRecords = getAllBrushingRecords();
+    
+    // Update stats overview
+    document.getElementById('total-brushings').textContent = allRecords.length;
+    
+    const avgDuration = allRecords.length > 0 
+        ? Math.round(allRecords.reduce((sum, r) => sum + r.duration, 0) / allRecords.length)
+        : 0;
+    document.getElementById('avg-duration').textContent = `${Math.floor(avgDuration / 60)}:${(avgDuration % 60).toString().padStart(2, '0')}`;
+    
+    const bestStreak = Math.max(...children.map(c => c.longest_streak || 0), 0);
+    document.getElementById('best-streak').textContent = bestStreak;
+    
+    // Update child filter
+    const filter = document.getElementById('stats-child-filter');
+    filter.innerHTML = '<option value="all">Tüm Çocuklar</option>' +
+        children.map(child => `<option value="${child.id}">${child.name}</option>`).join('');
+    
+    // Render charts
+    renderWeeklyChart();
+    renderDailyDistribution();
+    
+    if (debugMode) {
+        console.log('🐛 Stats loaded:', {
+            totalRecords: allRecords.length,
+            avgDuration,
+            bestStreak,
+            children: children.length
+        });
+    }
+}
+
+function renderWeeklyChart() {
+    const container = document.getElementById('weekly-chart');
+    const records = getAllBrushingRecords();
+    
+    // Get last 7 days
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        days.push(date);
+    }
+    
+    const chartData = days.map(day => {
+        const dayRecords = records.filter(r => {
+            const recordDate = new Date(r.brush_time);
+            return recordDate.toDateString() === day.toDateString();
+        });
+        
+        return {
+            day: day.toLocaleDateString('tr-TR', { weekday: 'short' }),
+            count: dayRecords.length
+        };
+    });
+    
+    const maxCount = Math.max(...chartData.map(d => d.count), 1);
+    
+    container.innerHTML = chartData.map(data => `
+        <div class="chart-bar">
+            <div class="bar" style="height: ${(data.count / maxCount) * 100}%"></div>
+            <div class="bar-label">${data.day}</div>
+            <div class="bar-value">${data.count}</div>
+        </div>
+    `).join('');
+}
+
+function renderDailyDistribution() {
+    const container = document.getElementById('daily-distribution');
+    const records = getAllBrushingRecords();
+    
+    const morningCount = records.filter(r => r.session_type === 'morning').length;
+    const eveningCount = records.filter(r => r.session_type === 'evening').length;
+    const total = morningCount + eveningCount;
+    
+    if (total === 0) {
+        container.innerHTML = `
+            <p class="no-data">Henüz veri yok</p>
+            ${debugMode ? '<small style="color: #666;">🐛 Timer kullanarak test verisi oluşturun</small>' : ''}
+        `;
+        return;
+    }
+    
+    const morningPercent = (morningCount / total) * 100;
+    const eveningPercent = (eveningCount / total) * 100;
+    
+    container.innerHTML = `
+        <div class="distribution-item">
+            <div class="distribution-bar">
+                <div class="bar-segment morning" style="width: ${morningPercent}%"></div>
+                <div class="bar-segment evening" style="width: ${eveningPercent}%"></div>
+            </div>
+            <div class="distribution-legend">
+                <div class="legend-item">
+                    <span class="legend-color morning"></span>
+                    <span>Sabah (${morningCount})</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color evening"></span>
+                    <span>Akşam (${eveningCount})</span>
+                </div>
+            </div>
+            ${debugMode ? '<div style="font-size: 0.8em; color: #666; margin-top: 5px;">🐛 Total: ' + total + ' records</div>' : ''}
+        </div>
+    `;
+}
+
+function updateProfileInfo() {
+    document.getElementById('profile-parent-name').textContent = currentParent.name;
+    document.getElementById('profile-parent-phone').textContent = currentParent.phone;
+    document.getElementById('profile-parent-email').textContent = currentParent.email || 'Belirtilmemiş';
+    
+    // Load settings
+    const settings = getSettings();
+    document.getElementById('notifications-enabled').checked = settings.notifications;
+    document.getElementById('morning-reminder').value = settings.morningReminder;
+    document.getElementById('evening-reminder').value = settings.eveningReminder;
+    
+    // Show admin settings if in admin mode
+    if (isAdminMode) {
+        showAdminProfileSettings();
+    }
+}
+
+function saveSettings() {
+    const settings = {
+        notifications: document.getElementById('notifications-enabled').checked,
+        morningReminder: document.getElementById('morning-reminder').value,
+        eveningReminder: document.getElementById('evening-reminder').value
+    };
+    
+    localStorage.setItem('toothbrush_settings', JSON.stringify(settings));
+    setupReminders();
+    
+    // Save admin settings if in admin mode
+    if (isAdminMode) {
+        saveAdminSettings();
+    }
+    
+    if (debugMode) {
+        console.log('🐛 Settings saved:', settings);
+    }
+}
+
+function setupReminders() {
+    if ('Notification' in window) {
+        Notification.requestPermission();
+    }
+    
+    const settings = getSettings();
+    if (settings.notifications) {
+        // Setup morning reminder
+        scheduleReminder(settings.morningReminder, 'Sabah diş fırçalama zamanı! 🌅');
+        // Setup evening reminder
+        scheduleReminder(settings.eveningReminder, 'Akşam diş fırçalama zamanı! 🌙');
+    }
+}
+
+function scheduleReminder(time, message) {
+    // This is a simplified reminder system
+    // In a real app, you'd use service workers for background notifications
+    const [hours, minutes] = time.split(':').map(Number);
+    const now = new Date();
+    const reminderTime = new Date();
+    reminderTime.setHours(hours, minutes, 0, 0);
+    
+    if (reminderTime <= now) {
+        reminderTime.setDate(reminderTime.getDate() + 1);
+    }
+    
+    const timeUntilReminder = reminderTime.getTime() - now.getTime();
+    
+    setTimeout(() => {
+        if (Notification.permission === 'granted') {
+            new Notification('Diş Fırçalama Hatırlatması', {
+                body: message,
+                icon: 'icon-192x192.png'
+            });
+        }
+        
+        // Schedule for next day
+        scheduleReminder(time, message);
+    }, timeUntilReminder);
+}
+
+function exportData() {
+    const data = {
+        parent: currentParent,
+        children: children,
+        brushingRecords: getAllBrushingRecords(),
+        rewards: getAllRewards(),
+        settings: getSettings(),
+        exportDate: new Date().toISOString(),
+        debugMode: debugMode
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dis-fircalama-verileri-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('Veriler başarıyla dışa aktarıldı', 'success');
+    
+    if (debugMode) {
+        console.log('🐛 Data exported:', data);
+    }
+}
+
+function logout() {
+    if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
+        if (debugMode) {
+            console.log('🐛 Logging out, clearing data');
+        }
+        
+        localStorage.removeItem('toothbrush_parent');
+        localStorage.removeItem('toothbrush_children');
+        localStorage.removeItem('toothbrush_brushing_records');
+        localStorage.removeItem('toothbrush_rewards');
+        localStorage.removeItem('toothbrush_settings');
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        
+        currentParent = null;
+        currentChild = null;
+        children = [];
+        isAdminMode = false;
+        
+        // Remove debug panel
+        const debugPanel = document.getElementById('debug-panel');
+        if (debugPanel) {
+            debugPanel.remove();
+        }
+        
+        showScreen('auth-screen');
+        showNotification('Başarıyla çıkış yapıldı', 'info');
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Show notification
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    // Hide and remove notification
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
+    
+    if (debugMode) {
+        console.log('🐛 Notification:', type, message);
+    }
+}
+
+function updateSyncStatus() {
+    const indicator = document.getElementById('sync-indicator');
+    if (!indicator) return;
+    
+    const backendUrl = getBackendUrl();
+    if (backendUrl) {
+        // Test backend connection
+        testBackendConnection().then(isOnline => {
+            if (isOnline) {
+                indicator.textContent = 'Çevrimiçi';
+                indicator.className = 'sync-online';
+            } else {
+                indicator.textContent = 'Bağlantı Hatası';
+                indicator.className = 'sync-error';
+            }
+        });
+    } else {
+        indicator.textContent = 'Çevrimdışı';
+        indicator.className = 'sync-offline';
+    }
+}
+
+// Utility Functions
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('tr-TR');
+}
+
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Sync status update interval
+setInterval(updateSyncStatus, 30000); // Update every 30 seconds
+
+// Debug mode console commands
+if (debugMode) {
+    window.debugCommands = {
+        showData: () => {
+            console.log('🐛 Current Data:', {
+                parent: currentParent,
+                children: children,
+                records: getAllBrushingRecords(),
+                rewards: getAllRewards(),
+                settings: getSettings()
+            });
+        },
+        clearData: () => {
+            if (confirm('Clear all debug data?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        },
+        addTestRecord: (childId, sessionType = 'morning') => {
+            const record = {
+                id: generateId(),
+                child_id: childId || children[0]?.id,
+                session_type: sessionType,
+                brush_time: new Date().toISOString(),
+                duration: 120,
+                quality_score: 4
+            };
+            const records = getAllBrushingRecords();
+            records.push(record);
+            localStorage.setItem('toothbrush_brushing_records', JSON.stringify(records));
+            console.log('🐛 Test record added:', record);
+        }
+    };
+    
+    console.log('🐛 Debug commands available:', Object.keys(window.debugCommands));
 }
