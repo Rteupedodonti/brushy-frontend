@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
-    // Load data from storage
+    // Load data from hybrid storage
     loadParentData();
     loadChildrenData();
     
@@ -32,6 +32,11 @@ function initializeApp() {
     
     // Initialize sync status
     updateSyncStatus();
+    
+    // Start hybrid storage
+    if (window.hybridStorage) {
+        window.hybridStorage.updateSyncStatus();
+    }
 }
 
 function checkDebugMode() {
@@ -49,7 +54,8 @@ function checkDebugMode() {
                 name: 'Debug Veli',
                 phone: '05551234567',
                 email: 'debug@test.com',
-                created_at: new Date().toISOString()
+                created_at: new Date().toISOString(),
+                timestamp: Date.now()
             };
             currentParent = debugParent;
             saveParentData(debugParent);
@@ -68,7 +74,8 @@ function checkDebugMode() {
                     avatar: 2,
                     current_streak: 3,
                     longest_streak: 7,
-                    created_at: new Date().toISOString()
+                    created_at: new Date().toISOString(),
+                    timestamp: Date.now()
                 },
                 {
                     id: 'debug-child-2',
@@ -78,7 +85,8 @@ function checkDebugMode() {
                     avatar: 5,
                     current_streak: 1,
                     longest_streak: 4,
-                    created_at: new Date().toISOString()
+                    created_at: new Date().toISOString(),
+                    timestamp: Date.now()
                 }
             ];
             children = debugChildren;
@@ -115,12 +123,15 @@ function showDebugPanel() {
         <div>Children: ${children.length}</div>
         <div>Screen: <span id="debug-screen">${currentScreen}</span></div>
         <div>Backend: <span id="debug-backend">${getBackendUrl() || 'Local'}</span></div>
+        <div>Sync: <span id="debug-sync">${getSyncStatus().isOnline ? 'Online' : 'Offline'}</span></div>
         <button onclick="toggleDebugDetails()" style="margin-top: 5px; background: #333; color: #00ff00; border: 1px solid #00ff00; padding: 2px 6px; border-radius: 3px; cursor: pointer;">Details</button>
         <div id="debug-details" style="display: none; margin-top: 5px; font-size: 10px;">
             <div>LocalStorage Keys:</div>
             <div style="margin-left: 10px;">
                 ${Object.keys(localStorage).filter(k => k.startsWith('toothbrush_')).map(k => `• ${k}`).join('<br>')}
             </div>
+            <div style="margin-top: 5px;">Sync Queue: ${getSyncStatus().queueLength}</div>
+            <div>Last Sync: ${getSyncStatus().lastSyncDate}</div>
         </div>
     `;
     
@@ -137,9 +148,11 @@ function updateDebugPanel() {
     
     const screenSpan = document.getElementById('debug-screen');
     const backendSpan = document.getElementById('debug-backend');
+    const syncSpan = document.getElementById('debug-sync');
     
     if (screenSpan) screenSpan.textContent = currentScreen;
     if (backendSpan) backendSpan.textContent = getBackendUrl() || 'Local';
+    if (syncSpan) syncSpan.textContent = getSyncStatus().isOnline ? 'Online' : 'Offline';
 }
 
 function setupEventListeners() {
@@ -236,15 +249,15 @@ function verifyAdminAccess() {
         isAdminMode = true;
         localStorage.setItem(ADMIN_SESSION_KEY, Date.now().toString());
         
-        // Show advanced settings
-        document.getElementById('advanced-settings').style.display = 'block';
         hideAdminLogin();
+        showScreen('admin-panel-screen');
+        loadAdminPanel();
         
         // Show success message
         showNotification('Admin erişimi başarılı! 👨‍💼', 'success');
         
-        // Load saved admin settings
-        loadAdminSettings();
+        // Add admin log
+        addAdminLog('Admin paneli açıldı', 'info');
     } else {
         showNotification('Hatalı admin şifresi! ❌', 'error');
         document.getElementById('admin-password').value = '';
@@ -252,11 +265,14 @@ function verifyAdminAccess() {
     }
 }
 
-function hideAdvancedSettings() {
-    document.getElementById('advanced-settings').style.display = 'none';
-    isAdminMode = false;
-    localStorage.removeItem(ADMIN_SESSION_KEY);
-    showNotification('Admin modundan çıkıldı', 'info');
+function logoutAdmin() {
+    if (confirm('Admin panelinden çıkış yapmak istediğiniz emin misiniz?')) {
+        isAdminMode = false;
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        addAdminLog('Admin panelinden çıkış yapıldı', 'info');
+        showScreen('auth-screen');
+        showNotification('Admin modundan çıkıldı', 'info');
+    }
 }
 
 function checkAdminSession() {
@@ -268,21 +284,53 @@ function checkAdminSession() {
         
         if (currentTime - sessionTime < sessionDuration) {
             isAdminMode = true;
-            // Show admin settings in profile if logged in
-            if (currentParent) {
-                showAdminProfileSettings();
-            }
         } else {
             localStorage.removeItem(ADMIN_SESSION_KEY);
         }
     }
 }
 
-function showAdminProfileSettings() {
-    const adminSettings = document.getElementById('admin-profile-settings');
-    if (adminSettings && isAdminMode) {
-        adminSettings.style.display = 'block';
-        loadAdminProfileSettings();
+function loadAdminPanel() {
+    // Load system statistics
+    updateSystemStats();
+    
+    // Load admin settings
+    loadAdminSettings();
+    
+    // Load recent logs
+    loadAdminLogs();
+    
+    // Update sync status
+    updateAdminSyncStatus();
+}
+
+function updateSystemStats() {
+    const allParents = JSON.parse(localStorage.getItem('toothbrush_all_parents') || '[]');
+    const allChildren = getChildrenData();
+    const allRecords = getAllBrushingRecords();
+    const allRewards = getAllRewards();
+    
+    document.getElementById('total-parents').textContent = allParents.length;
+    document.getElementById('total-children').textContent = allChildren.length;
+    document.getElementById('total-sessions').textContent = allRecords.length;
+    document.getElementById('total-rewards').textContent = allRewards.filter(r => r.status === 'earned').length;
+}
+
+function updateAdminSyncStatus() {
+    const syncStats = getSyncStatus();
+    const statusElement = document.getElementById('admin-connection-status');
+    
+    if (!statusElement) return;
+    
+    if (!syncStats.isOnline) {
+        statusElement.textContent = 'Çevrimdışı';
+        statusElement.className = 'status-offline';
+    } else if (syncStats.queueLength > 0) {
+        statusElement.textContent = `Senkronize Ediliyor (${syncStats.queueLength})`;
+        statusElement.className = 'status-syncing';
+    } else {
+        statusElement.textContent = 'Çevrimiçi ve Senkronize';
+        statusElement.className = 'status-online';
     }
 }
 
@@ -290,43 +338,29 @@ function loadAdminSettings() {
     // Load backend URL
     const savedBackendUrl = localStorage.getItem('backend_url');
     if (savedBackendUrl) {
-        document.getElementById('backend-url').value = savedBackendUrl;
+        document.getElementById('admin-backend-url').value = savedBackendUrl;
     }
     
-    // Load other admin settings
+    // Load admin settings
     const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
-    document.getElementById('debug-mode').checked = adminSettings.debugMode || false;
-    document.getElementById('analytics-enabled').checked = adminSettings.analytics || false;
-    
-    if (adminSettings.adminEmail) {
-        document.getElementById('admin-email').value = adminSettings.adminEmail;
-    }
-}
-
-function loadAdminProfileSettings() {
-    const savedBackendUrl = localStorage.getItem('backend_url');
-    if (savedBackendUrl) {
-        document.getElementById('profile-backend-url').value = savedBackendUrl;
-    }
-    
-    const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
-    document.getElementById('profile-debug-mode').checked = adminSettings.debugMode || false;
-    document.getElementById('profile-analytics').checked = adminSettings.analytics || false;
+    document.getElementById('admin-debug-mode').checked = adminSettings.debugMode || false;
+    document.getElementById('admin-console-logs').checked = adminSettings.consoleLogs || false;
+    document.getElementById('admin-analytics').checked = adminSettings.analytics || false;
 }
 
 function saveAdminSettings() {
     if (!isAdminMode) return;
     
     const adminSettings = {
-        debugMode: document.getElementById('debug-mode')?.checked || document.getElementById('profile-debug-mode')?.checked || false,
-        analytics: document.getElementById('analytics-enabled')?.checked || document.getElementById('profile-analytics')?.checked || false,
-        adminEmail: document.getElementById('admin-email')?.value || ''
+        debugMode: document.getElementById('admin-debug-mode').checked,
+        consoleLogs: document.getElementById('admin-console-logs').checked,
+        analytics: document.getElementById('admin-analytics').checked
     };
     
     localStorage.setItem('admin_settings', JSON.stringify(adminSettings));
     
     // Save backend URL
-    const backendUrl = document.getElementById('backend-url')?.value || document.getElementById('profile-backend-url')?.value;
+    const backendUrl = document.getElementById('admin-backend-url').value;
     if (backendUrl) {
         localStorage.setItem('backend_url', backendUrl);
         setBackendUrl(backendUrl);
@@ -338,12 +372,328 @@ function saveAdminSettings() {
     
     if (debugMode && !wasDebugMode) {
         showNotification('Debug modu etkinleştirildi! Sayfa yenileniyor...', 'info');
+        addAdminLog('Debug modu etkinleştirildi', 'info');
         setTimeout(() => location.reload(), 1500);
     } else if (!debugMode && wasDebugMode) {
         showNotification('Debug modu kapatıldı! Sayfa yenileniyor...', 'info');
+        addAdminLog('Debug modu kapatıldı', 'info');
         setTimeout(() => location.reload(), 1500);
     } else {
         showNotification('Admin ayarları kaydedildi', 'success');
+        addAdminLog('Admin ayarları güncellendi', 'info');
+    }
+}
+
+function testAdminConnection() {
+    const backendUrl = document.getElementById('admin-backend-url').value;
+    const statusElement = document.getElementById('admin-connection-status');
+    
+    if (!backendUrl) {
+        statusElement.textContent = 'URL Gerekli';
+        statusElement.className = 'status-error';
+        return;
+    }
+    
+    statusElement.textContent = 'Test Ediliyor...';
+    statusElement.className = 'status-offline';
+    
+    // Test backend connection
+    testBackendConnection(backendUrl).then(isOnline => {
+        if (isOnline) {
+            statusElement.textContent = 'Bağlantı Başarılı';
+            statusElement.className = 'status-online';
+            addAdminLog(`Backend bağlantısı başarılı: ${backendUrl}`, 'info');
+            
+            // Force sync all data
+            forceSyncAll();
+        } else {
+            statusElement.textContent = 'Bağlantı Hatası';
+            statusElement.className = 'status-error';
+            addAdminLog(`Backend bağlantısı başarısız: ${backendUrl}`, 'error');
+        }
+    }).catch(error => {
+        statusElement.textContent = 'Bağlantı Hatası';
+        statusElement.className = 'status-error';
+        addAdminLog(`Backend bağlantı hatası: ${error.message}`, 'error');
+    });
+}
+
+function exportAllData() {
+    const syncStats = getSyncStatus();
+    const allData = {
+        parents: JSON.parse(localStorage.getItem('toothbrush_all_parents') || '[]'),
+        children: getChildrenData(),
+        brushingRecords: getAllBrushingRecords(),
+        rewards: getAllRewards(),
+        settings: getSettings(),
+        adminSettings: JSON.parse(localStorage.getItem('admin_settings') || '{}'),
+        syncStats: syncStats,
+        exportDate: new Date().toISOString(),
+        version: '2.0.0'
+    };
+    
+    const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dis-fircalama-full-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('Tüm veriler başarıyla dışa aktarıldı', 'success');
+    addAdminLog('Tüm veriler dışa aktarıldı', 'info');
+}
+
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                
+                if (confirm('Bu işlem mevcut tüm verileri değiştirecek. Devam etmek istediğinizden emin misiniz?')) {
+                    // Import data with hybrid storage
+                    if (data.parents) localStorage.setItem('toothbrush_all_parents', JSON.stringify(data.parents));
+                    if (data.children) saveChildrenData(data.children);
+                    if (data.brushingRecords) localStorage.setItem('toothbrush_brushing_records', JSON.stringify(data.brushingRecords));
+                    if (data.rewards) localStorage.setItem('toothbrush_rewards', JSON.stringify(data.rewards));
+                    if (data.settings) localStorage.setItem('toothbrush_settings', JSON.stringify(data.settings));
+                    if (data.adminSettings) localStorage.setItem('admin_settings', JSON.stringify(data.adminSettings));
+                    
+                    showNotification('Veriler başarıyla içe aktarıldı', 'success');
+                    addAdminLog('Veriler içe aktarıldı', 'info');
+                    
+                    // Force sync to backend
+                    forceSyncAll();
+                    
+                    // Reload admin panel
+                    loadAdminPanel();
+                }
+            } catch (error) {
+                showNotification('Dosya formatı hatalı', 'error');
+                addAdminLog(`Veri içe aktarma hatası: ${error.message}`, 'error');
+            }
+        };
+        reader.readAsText(file);
+    };
+    
+    input.click();
+}
+
+function clearAllData() {
+    if (confirm('Bu işlem TÜM verileri silecek ve geri alınamaz. Devam etmek istediğinizden emin misiniz?')) {
+        if (confirm('Son uyarı: Bu işlem tüm veli, çocuk, fırçalama ve rozet verilerini silecek. Gerçekten devam etmek istiyor musunuz?')) {
+            // Clear all data
+            localStorage.removeItem('toothbrush_parent');
+            localStorage.removeItem('toothbrush_all_parents');
+            localStorage.removeItem('toothbrush_children');
+            localStorage.removeItem('toothbrush_brushing_records');
+            localStorage.removeItem('toothbrush_rewards');
+            localStorage.removeItem('toothbrush_settings');
+            
+            // Clear sync queue
+            clearSyncQueue();
+            
+            showNotification('Tüm veriler temizlendi', 'success');
+            addAdminLog('Tüm veriler temizlendi', 'warning');
+            
+            // Reload admin panel
+            loadAdminPanel();
+        }
+    }
+}
+
+function generateTestData() {
+    const testParents = [
+        { id: 'test-parent-1', name: 'Ahmet Yılmaz', phone: '05551234567', email: 'ahmet@test.com', timestamp: Date.now() },
+        { id: 'test-parent-2', name: 'Ayşe Demir', phone: '05559876543', email: 'ayse@test.com', timestamp: Date.now() }
+    ];
+    
+    const testChildren = [
+        { id: 'test-child-1', parent_id: 'test-parent-1', name: 'Ali', age: 6, avatar: 2, current_streak: 5, longest_streak: 12, timestamp: Date.now() },
+        { id: 'test-child-2', parent_id: 'test-parent-1', name: 'Zeynep', age: 4, avatar: 3, current_streak: 2, longest_streak: 8, timestamp: Date.now() },
+        { id: 'test-child-3', parent_id: 'test-parent-2', name: 'Mehmet', age: 7, avatar: 1, current_streak: 8, longest_streak: 15, timestamp: Date.now() }
+    ];
+    
+    const testRecords = [];
+    const now = new Date();
+    
+    // Generate test brushing records
+    for (let i = 0; i < 30; i++) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        testChildren.forEach(child => {
+            if (Math.random() > 0.3) { // 70% chance of brushing
+                testRecords.push({
+                    id: `test-record-${child.id}-${i}-morning`,
+                    child_id: child.id,
+                    session_type: 'morning',
+                    brush_time: date.toISOString(),
+                    duration: 90 + Math.random() * 60,
+                    quality_score: Math.floor(Math.random() * 3) + 3,
+                    timestamp: Date.now()
+                });
+            }
+            if (Math.random() > 0.2) { // 80% chance of evening brushing
+                testRecords.push({
+                    id: `test-record-${child.id}-${i}-evening`,
+                    child_id: child.id,
+                    session_type: 'evening',
+                    brush_time: new Date(date.getTime() + 12 * 60 * 60 * 1000).toISOString(),
+                    duration: 100 + Math.random() * 50,
+                    quality_score: Math.floor(Math.random() * 3) + 3,
+                    timestamp: Date.now()
+                });
+            }
+        });
+    }
+    
+    // Save test data with hybrid storage
+    const existingParents = JSON.parse(localStorage.getItem('toothbrush_all_parents') || '[]');
+    const existingChildren = getChildrenData();
+    const existingRecords = getAllBrushingRecords();
+    
+    localStorage.setItem('toothbrush_all_parents', JSON.stringify([...existingParents, ...testParents]));
+    saveChildrenData([...existingChildren, ...testChildren]);
+    localStorage.setItem('toothbrush_brushing_records', JSON.stringify([...existingRecords, ...testRecords]));
+    
+    showNotification('Test verileri oluşturuldu', 'success');
+    addAdminLog('Test verileri oluşturuldu', 'info');
+    
+    // Force sync to backend
+    forceSyncAll();
+    
+    // Reload admin panel
+    loadAdminPanel();
+}
+
+function resetAllStreaks() {
+    if (confirm('Tüm çocukların serilerini sıfırlamak istediğinizden emin misiniz?')) {
+        const allChildren = getChildrenData();
+        const updatedChildren = allChildren.map(child => ({
+            ...child,
+            current_streak: 0,
+            timestamp: Date.now()
+        }));
+        
+        saveChildrenData(updatedChildren);
+        
+        showNotification('Tüm seriler sıfırlandı', 'success');
+        addAdminLog('Tüm çocuk serileri sıfırlandı', 'info');
+        
+        // Force sync to backend
+        forceSyncAll();
+        
+        // Reload admin panel
+        loadAdminPanel();
+    }
+}
+
+function recalculateRewards() {
+    const allChildren = getChildrenData();
+    const allRecords = getAllBrushingRecords();
+    let recalculatedCount = 0;
+    
+    allChildren.forEach(child => {
+        const childRecords = allRecords.filter(r => r.child_id === child.id);
+        
+        // Recalculate rewards based on records
+        const rewards = calculateChildRewards(child, childRecords);
+        
+        // Save updated rewards
+        rewards.forEach(reward => {
+            saveReward(child.id, reward.type, reward.status);
+            recalculatedCount++;
+        });
+    });
+    
+    showNotification(`${recalculatedCount} rozet yeniden hesaplandı`, 'success');
+    addAdminLog(`${recalculatedCount} rozet yeniden hesaplandı`, 'info');
+    
+    // Force sync to backend
+    forceSyncAll();
+    
+    // Reload admin panel
+    loadAdminPanel();
+}
+
+function calculateChildRewards(child, records) {
+    const rewards = [];
+    
+    // First brush reward
+    if (records.length > 0) {
+        rewards.push({ type: 'first_brush', status: 'earned' });
+    }
+    
+    // Week streak reward
+    if (child.longest_streak >= 7) {
+        rewards.push({ type: 'week_streak', status: 'earned' });
+    }
+    
+    // Month streak reward
+    if (child.longest_streak >= 30) {
+        rewards.push({ type: 'month_streak', status: 'earned' });
+    }
+    
+    // Add more reward calculations here...
+    
+    return rewards;
+}
+
+function addAdminLog(message, level = 'info') {
+    const logs = JSON.parse(localStorage.getItem('admin_logs') || '[]');
+    const logEntry = {
+        timestamp: new Date().toISOString(),
+        level: level,
+        message: message
+    };
+    
+    logs.unshift(logEntry);
+    
+    // Keep only last 100 logs
+    if (logs.length > 100) {
+        logs.splice(100);
+    }
+    
+    localStorage.setItem('admin_logs', JSON.stringify(logs));
+    
+    // Update logs display if admin panel is active
+    if (currentScreen === 'admin-panel-screen') {
+        loadAdminLogs();
+    }
+}
+
+function loadAdminLogs() {
+    const logs = JSON.parse(localStorage.getItem('admin_logs') || '[]');
+    const container = document.getElementById('admin-logs');
+    
+    if (logs.length === 0) {
+        container.innerHTML = '<div class="log-entry"><span class="log-message">Henüz log kaydı yok</span></div>';
+        return;
+    }
+    
+    container.innerHTML = logs.slice(0, 20).map(log => `
+        <div class="log-entry">
+            <span class="log-time">${new Date(log.timestamp).toLocaleString('tr-TR')}</span>
+            <span class="log-level ${log.level}">${log.level.toUpperCase()}</span>
+            <span class="log-message">${log.message}</span>
+        </div>
+    `).join('');
+}
+
+function clearLogs() {
+    if (confirm('Tüm logları temizlemek istediğinizden emin misiniz?')) {
+        localStorage.removeItem('admin_logs');
+        loadAdminLogs();
+        showNotification('Loglar temizlendi', 'success');
     }
 }
 
@@ -360,11 +710,6 @@ function checkAuthStatus() {
         currentParent = parent;
         showScreen('dashboard-screen');
         loadDashboard();
-        
-        // Show admin settings in profile if admin mode is active
-        if (isAdminMode) {
-            showAdminProfileSettings();
-        }
     } else {
         showScreen('auth-screen');
     }
@@ -376,13 +721,9 @@ async function handleParentRegister(e) {
     const formData = {
         name: document.getElementById('parent-name').value,
         phone: document.getElementById('parent-phone').value,
-        email: document.getElementById('parent-email').value || null
+        email: document.getElementById('parent-email').value || null,
+        timestamp: Date.now()
     };
-    
-    // Save admin settings if in admin mode
-    if (isAdminMode) {
-        saveAdminSettings();
-    }
     
     try {
         // Try to register with backend first
@@ -390,7 +731,8 @@ async function handleParentRegister(e) {
         
         if (parent) {
             currentParent = parent;
-            saveParentData(parent);
+            await saveParentDataHybrid(parent);
+            saveParentToAllParents(parent);
             showScreen('dashboard-screen');
             loadDashboard();
             showNotification('Kayıt başarılı!', 'success');
@@ -404,15 +746,11 @@ async function handleParentRegister(e) {
         };
         
         currentParent = localParent;
-        saveParentData(localParent);
+        await saveParentDataHybrid(localParent);
+        saveParentToAllParents(localParent);
         showScreen('dashboard-screen');
         loadDashboard();
         showNotification('Çevrimdışı kayıt yapıldı', 'info');
-    }
-    
-    // Show admin settings in profile if admin mode is active
-    if (isAdminMode) {
-        showAdminProfileSettings();
     }
 }
 
@@ -428,13 +766,13 @@ async function handleParentLogin(e) {
         
         if (parent) {
             currentParent = parent;
-            saveParentData(parent);
+            await saveParentDataHybrid(parent);
             
             // Load children from backend
             const backendChildren = await getChildrenByParent(parent.id);
             if (backendChildren && backendChildren.length > 0) {
                 children = backendChildren;
-                saveChildrenData(children);
+                await saveChildrenDataHybrid(children);
             }
             
             showScreen('dashboard-screen');
@@ -443,7 +781,7 @@ async function handleParentLogin(e) {
         }
     } catch (error) {
         // Fallback to local storage
-        const localParent = getParentData();
+        const localParent = await loadParentDataHybrid();
         if (localParent && localParent.phone === phone && localParent.name === name) {
             currentParent = localParent;
             showScreen('dashboard-screen');
@@ -453,19 +791,28 @@ async function handleParentLogin(e) {
             showNotification('Giriş bilgileri hatalı', 'error');
         }
     }
-    
-    // Show admin settings in profile if admin mode is active
-    if (isAdminMode) {
-        showAdminProfileSettings();
-    }
 }
 
-function loadDashboard() {
+function saveParentToAllParents(parent) {
+    const allParents = JSON.parse(localStorage.getItem('toothbrush_all_parents') || '[]');
+    const existingIndex = allParents.findIndex(p => p.id === parent.id);
+    
+    if (existingIndex >= 0) {
+        allParents[existingIndex] = parent;
+    } else {
+        allParents.push(parent);
+    }
+    
+    localStorage.setItem('toothbrush_all_parents', JSON.stringify(allParents));
+}
+
+async function loadDashboard() {
     // Update parent name display
     document.getElementById('parent-name-display').textContent = currentParent.name;
     
-    // Load children for current parent
-    children = getChildrenData().filter(child => child.parent_id === currentParent.id);
+    // Load children for current parent with hybrid storage
+    const allChildren = await loadChildrenDataHybrid();
+    children = allChildren.filter(child => child.parent_id === currentParent.id);
     renderChildren();
     
     // Update profile info
@@ -481,7 +828,8 @@ function loadDashboard() {
         console.log('🐛 Dashboard loaded:', {
             parent: currentParent,
             children: children.length,
-            screen: currentScreen
+            screen: currentScreen,
+            syncStatus: getSyncStatus()
         });
     }
 }
@@ -548,7 +896,8 @@ async function handleChildAdd(e) {
         age: parseInt(document.getElementById('child-age').value),
         avatar: selectedAvatar.dataset.avatar,
         current_streak: 0,
-        longest_streak: 0
+        longest_streak: 0,
+        timestamp: Date.now()
     };
     
     if (debugMode) {
@@ -561,10 +910,10 @@ async function handleChildAdd(e) {
         
         if (child) {
             children.push(child);
-            // Save all children (including other parents' children)
-            const allChildren = getChildrenData();
+            // Save all children with hybrid storage
+            const allChildren = await loadChildrenDataHybrid();
             allChildren.push(child);
-            saveChildrenData(allChildren);
+            await saveChildrenDataHybrid(allChildren);
             renderChildren();
             hideAddChildForm();
             showNotification('Çocuk başarıyla eklendi!', 'success');
@@ -578,10 +927,10 @@ async function handleChildAdd(e) {
         };
         
         children.push(localChild);
-        // Save all children (including other parents' children)
-        const allChildren = getChildrenData();
+        // Save all children with hybrid storage
+        const allChildren = await loadChildrenDataHybrid();
         allChildren.push(localChild);
-        saveChildrenData(allChildren);
+        await saveChildrenDataHybrid(allChildren);
         renderChildren();
         hideAddChildForm();
         showNotification('Çocuk çevrimdışı eklendi', 'info');
@@ -687,6 +1036,11 @@ function showScreen(screenId) {
     
     // Update debug panel
     updateDebugPanel();
+    
+    // Update admin sync status if in admin panel
+    if (screenId === 'admin-panel-screen') {
+        updateAdminSyncStatus();
+    }
     
     if (debugMode) {
         console.log('🐛 Screen changed to:', screenId);
@@ -878,37 +1232,27 @@ function renderDailyDistribution() {
     `;
 }
 
-function updateProfileInfo() {
+async function updateProfileInfo() {
     document.getElementById('profile-parent-name').textContent = currentParent.name;
     document.getElementById('profile-parent-phone').textContent = currentParent.phone;
     document.getElementById('profile-parent-email').textContent = currentParent.email || 'Belirtilmemiş';
     
-    // Load settings
-    const settings = getSettings();
+    // Load settings with hybrid storage
+    const settings = await loadSettingsHybrid();
     document.getElementById('notifications-enabled').checked = settings.notifications;
     document.getElementById('morning-reminder').value = settings.morningReminder;
     document.getElementById('evening-reminder').value = settings.eveningReminder;
-    
-    // Show admin settings if in admin mode
-    if (isAdminMode) {
-        showAdminProfileSettings();
-    }
 }
 
-function saveSettings() {
+async function saveSettings() {
     const settings = {
         notifications: document.getElementById('notifications-enabled').checked,
         morningReminder: document.getElementById('morning-reminder').value,
         eveningReminder: document.getElementById('evening-reminder').value
     };
     
-    localStorage.setItem('toothbrush_settings', JSON.stringify(settings));
+    await saveSettingsHybrid(settings);
     setupReminders();
-    
-    // Save admin settings if in admin mode
-    if (isAdminMode) {
-        saveAdminSettings();
-    }
     
     if (debugMode) {
         console.log('🐛 Settings saved:', settings);
@@ -957,14 +1301,17 @@ function scheduleReminder(time, message) {
 }
 
 function exportData() {
+    const syncStats = getSyncStatus();
     const data = {
         parent: currentParent,
         children: children,
         brushingRecords: getAllBrushingRecords(),
         rewards: getAllRewards(),
         settings: getSettings(),
+        syncStats: syncStats,
         exportDate: new Date().toISOString(),
-        debugMode: debugMode
+        debugMode: debugMode,
+        version: '2.0.0'
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -995,12 +1342,10 @@ function logout() {
         localStorage.removeItem('toothbrush_brushing_records');
         localStorage.removeItem('toothbrush_rewards');
         localStorage.removeItem('toothbrush_settings');
-        localStorage.removeItem(ADMIN_SESSION_KEY);
         
         currentParent = null;
         currentChild = null;
         children = [];
-        isAdminMode = false;
         
         // Remove debug panel
         const debugPanel = document.getElementById('debug-panel');
@@ -1040,21 +1385,25 @@ function updateSyncStatus() {
     const indicator = document.getElementById('sync-indicator');
     if (!indicator) return;
     
-    const backendUrl = getBackendUrl();
-    if (backendUrl) {
-        // Test backend connection
-        testBackendConnection().then(isOnline => {
-            if (isOnline) {
-                indicator.textContent = 'Çevrimiçi';
-                indicator.className = 'sync-online';
-            } else {
-                indicator.textContent = 'Bağlantı Hatası';
-                indicator.className = 'sync-error';
-            }
-        });
+    if (window.hybridStorage) {
+        window.hybridStorage.updateSyncStatus();
     } else {
-        indicator.textContent = 'Çevrimdışı';
-        indicator.className = 'sync-offline';
+        const backendUrl = getBackendUrl();
+        if (backendUrl) {
+            // Test backend connection
+            testBackendConnection().then(isOnline => {
+                if (isOnline) {
+                    indicator.textContent = 'Çevrimiçi';
+                    indicator.className = 'sync-online';
+                } else {
+                    indicator.textContent = 'Bağlantı Hatası';
+                    indicator.className = 'sync-error';
+                }
+            });
+        } else {
+            indicator.textContent = 'Çevrimdışı';
+            indicator.className = 'sync-offline';
+        }
     }
 }
 
@@ -1074,7 +1423,12 @@ function formatTime(dateString) {
 }
 
 // Sync status update interval
-setInterval(updateSyncStatus, 30000); // Update every 30 seconds
+setInterval(() => {
+    updateSyncStatus();
+    if (currentScreen === 'admin-panel-screen') {
+        updateAdminSyncStatus();
+    }
+}, 10000); // Update every 10 seconds
 
 // Debug mode console commands
 if (debugMode) {
@@ -1085,12 +1439,14 @@ if (debugMode) {
                 children: children,
                 records: getAllBrushingRecords(),
                 rewards: getAllRewards(),
-                settings: getSettings()
+                settings: getSettings(),
+                syncStats: getSyncStatus()
             });
         },
         clearData: () => {
             if (confirm('Clear all debug data?')) {
                 localStorage.clear();
+                clearSyncQueue();
                 location.reload();
             }
         },
@@ -1101,12 +1457,19 @@ if (debugMode) {
                 session_type: sessionType,
                 brush_time: new Date().toISOString(),
                 duration: 120,
-                quality_score: 4
+                quality_score: 4,
+                timestamp: Date.now()
             };
             const records = getAllBrushingRecords();
             records.push(record);
             localStorage.setItem('toothbrush_brushing_records', JSON.stringify(records));
             console.log('🐛 Test record added:', record);
+        },
+        forcSync: () => {
+            forceSyncAll();
+        },
+        syncStats: () => {
+            console.log('🐛 Sync Stats:', getSyncStatus());
         }
     };
     
